@@ -20,6 +20,7 @@ from __future__ import division, print_function, absolute_import
 
 from numba import njit
 import numpy as np
+from numpy import linalg as LA
 
 # TODO some documentation here, better documentation throughout
 
@@ -102,6 +103,11 @@ def swsphericalh_A(s, l, m):
     """
 
     return l*(l+1) - s*(s+1)
+
+
+
+
+"""  ========================= work on this =========================   """
 
 @njit(cache=True)
 def M_matrix_elem(s, c, m, l, lprime):
@@ -237,6 +243,10 @@ def M_matrix_old(s, c, m, l_max):
 
     return uf.outer(_ells,_ells).astype(complex)
 
+
+
+"""  ========================= work on this =========================   """
+
 @njit(cache=True)
 def M_matrix(s, c, m, l_max):
     """Spherical-spheroidal decomposition matrix truncated at l_max.
@@ -270,6 +280,112 @@ def M_matrix(s, c, m, l_max):
             M[i,j] = M_matrix_elem(s, c, m, _ells[i], _ells[j])
 
     return M
+
+
+
+"""  *********************** NEW FUNCTION ***********************   """
+
+@njit(cache=True)
+def dM_matrix(s, c, dc, m, l_max):
+    """Spherical-spheroidal decomposition matrix truncated at l_max.
+
+    Parameters
+    ----------
+    s: int
+      Spin-weight of interest
+
+    c: complex
+      Oblateness of the spheroidal harmonic
+
+    m: int
+      Magnetic quantum number
+
+    l_max: int
+      Maximum angular quantum number
+
+    Returns
+    -------
+    complex ndarray
+      Decomposition matrix
+    """
+
+
+    dM = M_matrix(s, c + dc, m, l_max) - M_matrix(s, c, m, l_max)
+
+    return dM
+
+
+"""  *********************** NEW FUNCTION ***********************   """
+
+@njit(cache=True)
+def eigVec_Mmat(s, c, m, l_max):
+    """Spherical-spheroidal decomposition matrix truncated at l_max.
+
+    Parameters
+    ----------
+    s: int
+      Spin-weight of interest
+
+    c: complex
+      Oblateness of the spheroidal harmonic
+
+    m: int
+      Magnetic quantum number
+
+    l_max: int
+      Maximum angular quantum number
+
+    Returns
+    -------
+    complex ndarray
+      Decomposition matrix
+    """
+
+    w, v = LA.eig(M_matrix(s, c, m, l_max))
+
+    return v
+
+
+
+"""  *********************** NEW FUNCTION ***********************   """
+
+@njit(cache=True)
+def eigValShift_Mmat(s, c, dc, m, l_max):
+    """Spherical-spheroidal decomposition matrix truncated at l_max.
+
+    Parameters
+    ----------
+    s: int
+      Spin-weight of interest
+
+    c: complex
+      Oblateness of the spheroidal harmonic
+
+    m: int
+      Magnetic quantum number
+
+    l_max: int
+      Maximum angular quantum number
+
+    Returns
+    -------
+    complex ndarray
+      Decomposition matrix
+    """
+
+    dMmat =  dM_matrix(s, c, dc, m, l_max)
+    v = np.transpose(eigVec_Mmat(s, c, m, l_max))
+    dim = (dMmat.shape)[1]
+    eigValShift_Arr =  np.empty(dim, dtype=np.complex128)
+
+
+    for i in range(dim):
+        eigValShift_Arr[i] =   np.dot( v[i,:], np.dot(dMmat, v[i,:])  )
+
+    return eigValShift_Arr
+
+
+"""  ========================= work on this =========================   """
 
 def sep_consts(s, c, m, l_max):
     """Finds eigenvalues of decomposition matrix, i.e. the separation
