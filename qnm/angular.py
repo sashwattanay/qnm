@@ -105,10 +105,6 @@ def swsphericalh_A(s, l, m):
     return l*(l+1) - s*(s+1)
 
 
-
-
-"""  ========================= work on this =========================   """
-
 @njit(cache=True)
 def M_matrix_elem(s, c, m, l, lprime):
     """ The (l, lprime) matrix element from the spherical-spheroidal
@@ -153,6 +149,58 @@ def M_matrix_elem(s, c, m, l, lprime):
         return -c*c*_calC(s,lprime,m)
 
     return 0.
+
+
+
+##  SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION
+## SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION
+
+@njit(cache=True)
+def dMdc_matrix_elem(s, c, m, l, lprime):
+    """ The (l, lprime) matrix element from the d/dc derivative of
+    the spherical-spheroidal decomposition matrix from Eq. (55).
+
+    Parameters
+    ----------
+    s: int
+      Spin-weight of interest
+
+    c: complex
+      Oblateness of the spheroidal harmonic
+
+    m: int
+      Magnetic quantum number
+
+    l: int
+      Angular quantum number of interest
+
+    lprime: int
+      Primed quantum number of interest
+
+    Returns
+    -------
+    complex
+      d/dc derivative of the matrix element M_{l, lprime}
+    """
+
+    if (lprime == l-2):
+        return -2*c*_calA(s,lprime,m)
+    if (lprime == l-1):
+        return (-2*c*_calD(s,lprime,m)
+                + 2*s*_calF(s,lprime,m))
+    if (lprime == l  ):
+        return ( - 2*c*_calB(s,lprime,m)
+                + 2*s*_calH(s,lprime,m))
+    if (lprime == l+1):
+        return (-2*c*_calE(s,lprime,m)
+                + 2*s*_calG(s,lprime,m))
+    if (lprime == l+2):
+        return -2*c*_calC(s,lprime,m)
+
+    return 0.
+
+
+
 
 def give_M_matrix_elem_ufunc(s, c, m):
     """Legacy function. Gives ufunc that implements matrix elements of
@@ -245,7 +293,7 @@ def M_matrix_old(s, c, m, l_max):
 
 
 
-"""  ========================= work on this =========================   """
+
 
 @njit(cache=True)
 def M_matrix(s, c, m, l_max):
@@ -283,11 +331,13 @@ def M_matrix(s, c, m, l_max):
 
 
 
-"""  *********************** NEW FUNCTION ***********************   """
+##  SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION
+## SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION
+
 
 @njit(cache=True)
-def dM_matrix(s, c, dc, m, l_max):
-    """Spherical-spheroidal decomposition matrix truncated at l_max.
+def dMdc_matrix(s, c, m, l_max):
+    """d/dc derivative of the Spherical-spheroidal decomposition matrix truncated at l_max.
 
     Parameters
     ----------
@@ -306,28 +356,40 @@ def dM_matrix(s, c, dc, m, l_max):
     Returns
     -------
     complex ndarray
-      Decomposition matrix
+      d/dc derivative of the decomposition matrix
     """
 
+    _ells = ells(s, m, l_max)
 
-    dM = M_matrix(s, c + dc, m, l_max) - M_matrix(s, c, m, l_max)
+    dMdc = np.empty((len(_ells),len(_ells)), dtype=np.complex128)
 
-    return dM
+    for i in range(len(_ells)):
+        for j in range(len(_ells)):
+            dMdc[i,j] = dMdc_matrix_elem(s, c, m, _ells[i], _ells[j])
+
+    return dMdc
 
 
-"""  *********************** NEW FUNCTION ***********************   """
+
+##  SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION
+## SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION
+
 
 @njit(cache=True)
-def eigVec_Mmat(s, c, m, l_max):
-    """Spherical-spheroidal decomposition matrix truncated at l_max.
+def sep_const_derivative(A0, s, c, m, l_max):
+    """Get the d/dc derivative of a single eigenvalue (separation constant)
+     of decomposition matrix, where the eigenvalue is closest to some guess A0.
 
     Parameters
     ----------
+    A0: complex
+      Value close to the desired separation constant.
+
     s: int
       Spin-weight of interest
 
     c: complex
-      Oblateness of the spheroidal harmonic
+      Oblateness of spheroidal harmonic
 
     m: int
       Magnetic quantum number
@@ -337,55 +399,19 @@ def eigVec_Mmat(s, c, m, l_max):
 
     Returns
     -------
-    complex ndarray
-      Decomposition matrix
+    complex, complex ndarray
+      d/dc derivative of a single eigenvalue (separation constant) of decomposition
+      matrix, where the eigenvalue is closest to some guess A0.
     """
 
-    w, v = LA.eig(M_matrix(s, c, m, l_max))
+    eigVec = C_and_sep_const_closest(A0, s, c, m, l_max)[1]
+    dMdcmat =  dMdc_matrix(s, c, m, l_max)
+    eigVal_derivative =   np.dot( eigVec , np.dot(dMdcmat, eigVec)  )
 
-    return v
-
-
-
-"""  *********************** NEW FUNCTION ***********************   """
-
-@njit(cache=True)
-def eigValShift_Mmat(s, c, dc, m, l_max):
-    """Spherical-spheroidal decomposition matrix truncated at l_max.
-
-    Parameters
-    ----------
-    s: int
-      Spin-weight of interest
-
-    c: complex
-      Oblateness of the spheroidal harmonic
-
-    m: int
-      Magnetic quantum number
-
-    l_max: int
-      Maximum angular quantum number
-
-    Returns
-    -------
-    complex ndarray
-      Decomposition matrix
-    """
-
-    dMmat =  dM_matrix(s, c, dc, m, l_max)
-    v = np.transpose(eigVec_Mmat(s, c, m, l_max))
-    dim = (dMmat.shape)[1]
-    eigValShift_Arr =  np.empty(dim, dtype=np.complex128)
+    return eigVal_derivative
 
 
-    for i in range(dim):
-        eigValShift_Arr[i] =   np.dot( v[i,:], np.dot(dMmat, v[i,:])  )
 
-    return eigValShift_Arr
-
-
-"""  ========================= work on this =========================   """
 
 def sep_consts(s, c, m, l_max):
     """Finds eigenvalues of decomposition matrix, i.e. the separation
@@ -443,6 +469,9 @@ def sep_const_closest(A0, s, c, m, l_max):
     i_closest = np.argmin(np.abs(As-A0))
     return As[i_closest]
 
+
+
+@njit(cache=True)
 def C_and_sep_const_closest(A0, s, c, m, l_max):
     """Get a single eigenvalue and eigenvector of decomposition
     matrix, where the eigenvalue is closest to some guess A0.
