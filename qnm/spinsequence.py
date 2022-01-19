@@ -404,10 +404,9 @@ class KerrSpinSeq(object):
             # For the C coefficients, just get the eigenvector at this
             # omega_guess closest to this A_guess
             c = a * omega_guess
-            A_guess = C_and_sep_const_closest(A_guess, self.s, c,
-                                    self.m, self.l_max)[0]
-            C_guess = C_and_sep_const_closest(A_guess, self.s, c,
-                                    self.m, self.l_max)[1]
+            A_guess, C_guess = \
+                C_and_sep_const_closest(A_guess, self.s, c,
+                                        self.m, self.l_max)
 
             return omega_guess, A_guess, C_guess
 

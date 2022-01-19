@@ -505,12 +505,51 @@ def C_and_sep_const_closest(A0, s, c, m, l_max):
     As, Cs = np.linalg.eig(M_matrix(s, c, m, l_max))
     i_closest = np.argmin(np.abs(As-A0))
 
+    return As[i_closest], Cs[:,i_closest]
 
+
+
+
+
+
+@njit(cache=True)
+def C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c, m, l_max):
+    """Get a single eigenvalue and eigenvector of decomposition
+    matrix, where the eigenvalue is closest to some guess A0.
+    It also gives the derivative of the eigenvalue (separation const.)
+    wrt. c.
+
+    Parameters
+    ----------
+    A0: complex
+      Value close to the desired separation constant.
+
+    s: int
+      Spin-weight of interest
+
+    c: complex
+      Oblateness of spheroidal harmonic
+
+    m: int
+      Magnetic quantum number
+
+    l_max: int
+      Maximum angular quantum number
+
+    Returns
+    -------
+    complex, complex ndarray
+      The first element of the tuple is the eigenvalue that is closest
+      in value to A0. The second element of the tuple is the
+      corresponding eigenvector.  The 0th element of this ndarray
+      corresponds to :meth:`l_min`.
+    """
+
+    As, Cs = np.linalg.eig(M_matrix(s, c, m, l_max))
+    i_closest = np.argmin(np.abs(As-A0))
 
     eigVec = Cs[:,i_closest]
     dMdcmat =  dMdc_matrix(s, c, m, l_max)
     eigVal_derivative =   np.vdot( eigVec , np.dot(dMdcmat, eigVec)  )
-
-
 
     return As[i_closest], Cs[:,i_closest], eigVal_derivative
