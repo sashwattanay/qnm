@@ -193,9 +193,13 @@ class NearbyRootFinder(object):
         # As far as I can tell, scipy.linalg.eig already normalizes
         # the eigenvector to unit norm, and the coefficient with the
         # largest norm is real
-        self.A, self.C = C_and_sep_const_closest(self.A0,
+        self.A = C_and_sep_const_closest(self.A0,
                                                  self.s, c,
-                                                 self.m, self.l_max)
+                                                 self.m, self.l_max)[0]
+
+        self.C = C_and_sep_const_closest(self.A0,
+                                                 self.s, c,
+                                                 self.m, self.l_max)[1]
 
         return self.omega
 

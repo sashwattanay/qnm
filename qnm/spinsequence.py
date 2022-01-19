@@ -151,7 +151,7 @@ class KerrSpinSeq(object):
 
         logging.info("l={}, m={}, n={} starting".format(
             self.l, self.m, self.n))
-        
+
         i  = 0  # TODO Allow to start at other values
         _a = 0. # TODO Allow to start at other values
 
@@ -404,9 +404,11 @@ class KerrSpinSeq(object):
             # For the C coefficients, just get the eigenvector at this
             # omega_guess closest to this A_guess
             c = a * omega_guess
-            A_guess, C_guess = \
-                C_and_sep_const_closest(A_guess, self.s, c,
-                                        self.m, self.l_max)
+            A_guess = C_and_sep_const_closest(A_guess, self.s, c,
+                                    self.m, self.l_max)[0]
+            C_guess = C_and_sep_const_closest(A_guess, self.s, c,
+                                    self.m, self.l_max)[1]
+
             return omega_guess, A_guess, C_guess
 
         self.solver.set_params(a=a, omega_guess=omega_guess,
