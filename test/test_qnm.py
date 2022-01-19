@@ -6,6 +6,15 @@ try:
 except ImportError:
     from pathlib2 import Path # py 2
 
+
+
+from qnm.angular import M_matrix
+from qnm.angular import dMdc_matrix
+from qnm.angular import C_and_sep_const_closest
+from qnm.angular import C_and_sep_const_closest_and_deriv_of_sep_const
+
+
+
 class QnmTestDownload(object):
     """
     Base class so that each test will automatically download_data
@@ -37,6 +46,32 @@ class TestQnmOneMode(QnmTestDownload):
         grav_220 = qnm.modes_cache(s=-2,l=2,m=2,n=0)
         omega, A, C = grav_220(a=0.68)
         assert np.allclose(omega, (0.5239751042900845 - 0.08151262363119974j))
+
+
+
+class TestSepConstDerivative(QnmTestDownload):
+    def test_sep_const_derivative(self):
+        """
+        See if the serivative of the separation constant (eigenvalue) is correctly given by
+        the code by comparing it with the finite difference method
+        """
+        A0 = 1.0
+        s = 2
+        c = 0.5
+        m = 2
+        l_max = 5
+        dc = c*0.00001
+
+        C0 = C_and_sep_const_closest(A0, s, c, m, l_max)[0]
+        C  = C_and_sep_const_closest(A0, s, c + dc, m, l_max)[0]
+
+        C_der_fin_diff = (C-C0)/dc
+        C_der_analytic = C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c, m, l_max)[2]
+
+        assert np.allclose(C_der_fin_diff, C_der_analytic, rtol=1e-05)
+
+
+
 
 class TestQnmNewLeaverSolver(QnmTestDownload):
     def test_compare_old_new_Leaver(self):
