@@ -151,10 +151,6 @@ def M_matrix_elem(s, c, m, l, lprime):
     return 0.
 
 
-
-##  SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION
-## SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION
-
 @njit(cache=True)
 def dMdc_matrix_elem(s, c, m, l, lprime):
     """ The (l, lprime) matrix element from the d/dc derivative of
@@ -331,10 +327,6 @@ def M_matrix(s, c, m, l_max):
 
 
 
-##  SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION
-## SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION
-
-
 @njit(cache=True)
 def dMdc_matrix(s, c, m, l_max):
     """d/dc derivative of the Spherical-spheroidal decomposition matrix truncated at l_max.
@@ -368,48 +360,6 @@ def dMdc_matrix(s, c, m, l_max):
             dMdc[i,j] = dMdc_matrix_elem(s, c, m, _ells[i], _ells[j])
 
     return dMdc
-
-
-
-##  SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION
-## SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION SASHWAT FUNCTION
-
-
-@njit(cache=True)
-def sep_const_derivative(A0, s, c, m, l_max):
-    """Get the d/dc derivative of a single eigenvalue (separation constant)
-     of decomposition matrix, where the eigenvalue is closest to some guess A0.
-
-    Parameters
-    ----------
-    A0: complex
-      Value close to the desired separation constant.
-
-    s: int
-      Spin-weight of interest
-
-    c: complex
-      Oblateness of spheroidal harmonic
-
-    m: int
-      Magnetic quantum number
-
-    l_max: int
-      Maximum angular quantum number
-
-    Returns
-    -------
-    complex, complex ndarray
-      d/dc derivative of a single eigenvalue (separation constant) of decomposition
-      matrix, where the eigenvalue is closest to some guess A0.
-    """
-
-    eigVec = C_and_sep_const_closest(A0, s, c, m, l_max)[1]
-    dMdcmat =  dMdc_matrix(s, c, m, l_max)
-    eigVal_derivative =   np.vdot( eigVec , np.dot(dMdcmat, eigVec)  )
-
-    return eigVal_derivative
-
 
 
 
@@ -471,7 +421,7 @@ def sep_const_closest(A0, s, c, m, l_max):
 
 
 
-@njit(cache=True)
+#@njit(cache=True)        activating this njit makes the pytest fail. Why?
 def C_and_sep_const_closest(A0, s, c, m, l_max):
     """Get a single eigenvalue and eigenvector of decomposition
     matrix, where the eigenvalue is closest to some guess A0.
