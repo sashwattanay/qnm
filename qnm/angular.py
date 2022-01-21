@@ -488,10 +488,13 @@ def C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c, m, l_max):
 
     Returns
     -------
-    complex, complex ndarray
+    complex, complex ndarray, complex
       The first element of the tuple is the eigenvalue that is closest
       in value to A0. The second element of the tuple is the
-      corresponding eigenvector.  The 0th element of this ndarray
+      corresponding eigenvector.
+      The third element is the derivative of the
+      eigenvalue (separation const.) wrt. c.
+      The 0th element of this ndarray
       corresponds to :meth:`l_min`.
     """
 
