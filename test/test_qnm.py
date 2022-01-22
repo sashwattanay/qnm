@@ -1,16 +1,11 @@
 import pytest
 import qnm
 import numpy as np
+import numdifftools as nd
 try:
     from pathlib import Path # py 3
 except ImportError:
     from pathlib2 import Path # py 2
-
-
-
-
-
-
 
 
 class QnmTestDownload(object):
@@ -47,57 +42,37 @@ class TestQnmOneMode(QnmTestDownload):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 class TestSepConstDerivative(QnmTestDownload):
     @pytest.mark.parametrize("A0, s, c, m, l_max",
-                             [(1.0, 2, 0.1, 2, 5),      # Low spin
-                              (1.0, 2, 0.9, 2, 5),      # High spin
-                              (1.0, 2, 0.5, 2, 8),      # High spin
-                              (1.0, 1, 0.5, 2, 8),      # High spin
-                              (1.0, 2, 0.5, 2, 5),      # High spin
-                              (1.0, -1, 0.5, 2, 5),      # High spin
+                             [(1.0, 2, 0.1, 3, 5),      #
+                              (2.0, 2, 0.9, 2, 5),      #
+                              (3.0, -1, 0.3, 4, 8),      #
+                              (1.0, 1, 0.5, 2, 8),      #
+                              (1.0, 2, 0.8, 2, 5),      #
+                              (1.0, -1, 0.5, 2, 5),      #
                               ])
 
     def test_sep_const_derivative(self, A0, s, c, m, l_max):
 
         from qnm.angular import C_and_sep_const_closest_and_deriv_of_sep_const
+        from qnm.angular import C_func
 
         """
-        See if the serivative of the separation constant (eigenvalue) is correctly given by
+        See if the derivative of the separation constant (eigenvalue) is correctly given by
         the code by comparing it with the finite difference method
         """
 
-        e = 1.0e-3
+        param_vec = (A0, s, np.real(c), np.imag(c), m, l_max)
 
-        dc = e*complex(1,0)
-        C0    =  C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c, m, l_max)[0]
-        Cfwd  =  C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c+dc, m, l_max)[0]
-        Cfwd2 =  C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c+2*dc, m, l_max)[0]
-        Cbwd  =  C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c-dc, m, l_max)[0]
-        Cbwd2 =  C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c-2*dc, m, l_max)[0]
-        C_der_fin_diff_real = (-Cfwd2 + 8* Cfwd - 8*Cbwd + Cbwd2)/(12*dc)
-        C_der_analytic_real = C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c, m, l_max)[2]
+        derivative_dir_vec = (0,0,1,0,0,0)          # we move in the real direction
+        C_der_fin_diff_real = nd.directionaldiff(C_func, param_vec , derivative_dir_vec)
 
-        dc = e*complex(0,1)
-        C0    =  C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c, m, l_max)[0]
-        Cfwd  =  C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c+dc, m, l_max)[0]
-        Cfwd2 =  C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c+2*dc, m, l_max)[0]
-        Cbwd  =  C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c-dc, m, l_max)[0]
-        Cbwd2 =  C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c-2*dc, m, l_max)[0]
-        C_der_fin_diff_imag = (-Cfwd2 + 8* Cfwd - 8*Cbwd + Cbwd2)/(12*dc)
-        C_der_analytic_imag = C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c, m, l_max)[2]
+        derivative_dir_vec = (0,0,0,1,0,0)          # we move in the imaginary direction
+        C_der_fin_diff_imag = nd.directionaldiff(C_func, param_vec , derivative_dir_vec)/complex(0,1)
 
-        assert np.allclose([C_der_fin_diff_real, C_der_fin_diff_imag], [C_der_analytic_real, C_der_analytic_imag])
+        C_der_analytic = C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c, m, l_max)[2]    # analytic derivative
+
+        assert np.allclose([C_der_fin_diff_real, C_der_fin_diff_imag], [C_der_analytic, C_der_analytic]   )
 
 
 
