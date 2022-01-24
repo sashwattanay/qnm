@@ -284,3 +284,57 @@ def lentz_gen(a, b, tol=1.e-10, N_min=0, N_max=np.Inf, tiny=1.e-30):
 
     # Success or failure can be assessed by the user
     return f_new, np.abs(Delta - 1.), j-1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def indexed_alpha(omega, a, s, m, A, n):
+
+    D = D_coeffs(omega, a, s, m, A)
+
+    return n*n + (D[0] + 1.)*n + D[0]
+
+
+def indexed_beta(omega, a, s, m, A, n):
+
+    D = D_coeffs(omega, a, s, m, A)
+
+    return -2.*n*n + (D[1] + 2.)*n + D[3]
+
+
+def indexed_gamma(omega, a, s, m, A, n):
+
+    D = D_coeffs(omega, a, s, m, A)
+
+    return n*n + (D[2] - 3.)*n + D[4] - D[2] + 2.
+
+
+def indexed_a(omega, a, s, m, A, n):
+
+    return indexed_alpha(omega, a, s, m, A, n-1)*indexed_gamma(omega, a, s, m, A, n)
+
+def indexed_b(omega, a, s, m, A, n):
+
+    return indexed_beta(omega, a, s, m, A, n-1)
+
+
+################################################################
+################################################################
+
+def dD0_da(omega, a, s, m, A, n):
+
+    var_1 = M*M - a*a
+
+    return complex(0,1)*(a*a*m + m*var1 - 2*a*M*M*omega)/(np.power(var1,3./2. ))

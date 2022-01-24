@@ -499,7 +499,7 @@ def C_and_sep_const_closest_and_deriv_of_sep_const(A0, s, c, m, l_max):
 
     eigVec = Cs[:,i_closest]
     dMdcmat =  dMdc_matrix(s, c, m, l_max)
-    eigVal_derivative =   np.vdot( eigVec , np.dot(dMdcmat, eigVec)  )
+    eigVal_derivative =   np.dot( eigVec , np.dot(dMdcmat, eigVec)  )/np.dot(eigVec , eigVec )
 
     return As[i_closest], Cs[:,i_closest], eigVal_derivative
 
