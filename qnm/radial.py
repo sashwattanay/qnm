@@ -456,7 +456,7 @@ def indexed_gamma(omega, a, s, m, A, n):
 
 def indexed_a(n, omega, a, s, m, A):
 
-    return indexed_alpha(omega, a, s, m, A, n-1)*indexed_gamma(omega, a, s, m, A, n)
+    return -indexed_alpha(omega, a, s, m, A, n-1)*indexed_gamma(omega, a, s, m, A, n)
 
 def indexed_b(n, omega, a, s, m, A):
 
@@ -565,16 +565,16 @@ def dgamma_dA(omega, a, s, m, A, n):
 
 
 def da_da(n, omega, a, s, m, A):
-    return indexed_gamma(omega, a, s, m, A, n)*dalpha_da(omega, a, s, m, A, n-1) \
-        + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_da(omega, a, s, m, A, n)
+    return -(indexed_gamma(omega, a, s, m, A, n)*dalpha_da(omega, a, s, m, A, n-1) \
+        + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_da(omega, a, s, m, A, n) )
 
 def da_domega(n, omega, a, s, m, A):
-    return indexed_gamma(omega, a, s, m, A, n)*dalpha_domega(omega, a, s, m, A, n-1) \
-        + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_domega(omega, a, s, m, A, n)
+    return -(indexed_gamma(omega, a, s, m, A, n)*dalpha_domega(omega, a, s, m, A, n-1) \
+        + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_domega(omega, a, s, m, A, n))
 
 def da_dA(n, omega, a, s, m, A):
-    return indexed_gamma(omega, a, s, m, A, n)*dalpha_dA(omega, a, s, m, A, n-1) \
-        + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_dA(omega, a, s, m, A, n)
+    return -(indexed_gamma(omega, a, s, m, A, n)*dalpha_dA(omega, a, s, m, A, n-1) \
+        + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_dA(omega, a, s, m, A, n))
 
 
 def db_da(n, omega, a, s, m, A):
