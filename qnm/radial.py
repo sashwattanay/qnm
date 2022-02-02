@@ -518,7 +518,7 @@ def dD_domega(omega, a, s, m, A):
     dD_array[3] = - 2.*(a*m*(M+v2) - 2.*M*v2*(i+8.*M*omega) + \
         a2*(i + 7.*M*omega + v2*omega))/v1_sqrt
 
-    dD_array[4] =   2.*M*(2.*a*m - 7.*i*v2 + M*(6.*i - 8.*v2*omega))/v1_sqrt
+    dD_array[4] = -2.*M*(-2.*a*m + i*(3.+2.*s)*v1_sqrt + 8.*M2*omega + M*(i + 8.*v1_sqrt*omega))/v1_sqrt
 
     return dD_array
 
