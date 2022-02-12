@@ -39,7 +39,13 @@ class NearbyRootFinder(object):
     l_max: int [default: 20]
       Maximum value of l to include in the spherical-spheroidal
       matrix for finding separation constant and mixing
-      coefficients. Must be sufficiently larger than l of interest
+      coefficients. Must be sufficiently larger than l of interestYeltsin Center in Yekaterinburg in December, two visitors spotted eyes drawn in ballpoint pen on Anna Leporskaya's work Three Figures.
+
+The avant-garde painting features three abstract, and usually eyeless, figures.
+
+The security guard has since been fired and the police have opened a criminal investigation.
+
+
       that angular spectral method can converge. The number of
       l's needed for convergence depends on a.
 
@@ -49,7 +55,7 @@ class NearbyRootFinder(object):
     tol: float [default: sqrt(double epsilon)]
       Tolerance for root-finding omega
 
-    cf_tol: float [defailt: 1e-10]
+    cf_tol: float [default: 1e-10]
       Tolerance for continued fraction calculation
 
     n_inv: int [default: 0]
@@ -90,6 +96,11 @@ class NearbyRootFinder(object):
         self.r_N         = 1.
 
         self.set_params(**kwargs)
+
+        # These are sentinel values to indicate that the calculation has not happened yet
+        self._last_omega = np.nan
+        self._last_inv_err = np.nan
+        self._last_grad_inv_err = np.nan
 
     def set_params(self, *args, **kwargs):
         """Set the parameters for root finding. Parameters are
@@ -134,41 +145,53 @@ class NearbyRootFinder(object):
 
         self.poles = np.array([])
 
-
-    def __call__(self, x):
+    def __call__(self, omega, return_grad = False):
         """Internal function for usage with optimize.root, for an
         instance of this class to act like a function for
         root-finding. optimize.root only works with reals so we pack
         and unpack complexes into float[2]
         """
 
-        omega = x[0] + 1.j*x[1]
-        # oblateness parameter
-        c     = self.a * omega
-        # Separation constant at this a*omega
-        A     = sep_const_closest(self.A0, self.s, c, self.m,
+        if omega != self._last_omega:
+            # oblateness parameter
+            c = self.a * omega
+            # Separation constant at this a*omega
+            A = sep_const_closest(self.A0, self.s, c, self.m,
                                   self.l_max)
 
-        # We are trying to find a root of this function:
-        # inv_err = radial.leaver_cf_trunc_inversion(omega, self.a,
-        #                                            self.s, self.m, A,
-        #                                            self.n_inv,
-        #                                            self.Nr, self.r_N)
+            # We are trying to find a root of this function:
+            # inv_err = radial.leaver_cf_trunc_inversion(omega, self.a,
+            #                                            self.s, self.m, A,
+            #                                            self.n_inv,
+            #                                            self.Nr, self.r_N)
 
-        # TODO!
-        # Determine the value to use for cf_tol based on
-        # the Jacobian, cf_tol = |d cf(\omega)/d\omega| tol.
-        inv_err, self.cf_err, self.n_frac = radial.leaver_cf_inv_lentz(omega, self.a,
-                                                          self.s, self.m, A,
-                                                          self.n_inv, self.cf_tol,
-                                                          self.Nr_min, self.Nr_max)
-        # logging.info("Lentz terminated with cf_err={}, n_frac={}".format(self.cf_err, self.n_frac))
+            # TODO!
+            # Determine the value to use for cf_tol based on
+            # the Jacobian, cf_tol = |d cf(\omega)/d\omega| tol.
+            self._last_inv_err, self.cf_err, self.n_frac = radial.leaver_cf_inv_lentz(omega, self.a,
+                                                                           self.s, self.m, A,
+                                                                           self.n_inv, self.cf_tol,
+                                                                           self.Nr_min, self.Nr_max)
+            # logging.info("Lentz terminated with cf_err={}, n_frac={}".format(self.cf_err, self.n_frac))
 
-        # Insert optional poles
-        pole_factors   = np.prod(omega - self.poles)
-        supp_err = inv_err / pole_factors
+            # Insert optional poles
+            pole_factors = np.prod(omega - self.poles)
+            supp_err = inv_err / pole_factors
 
-        return [np.real(supp_err), np.imag(supp_err)]
+
+
+
+
+
+        if return_grad:
+            return self._last_grad_inv_err
+        else:
+            return self._last_inv_err
+
+
+
+
+
 
     def do_solve(self):
         """Try to find a root of the continued fraction equation,
@@ -176,9 +199,10 @@ class NearbyRootFinder(object):
 
         # For the default (hybr) method, tol sets 'xtol', the
         # tolerance on omega.
-        self.opt_res = optimize.root(self,
-                                     [np.real(self.omega_guess), np.imag(self.omega_guess)],
-                                     method = 'hybr', tol = self.tol)
+        self.opt_res = optimize.newton(self,
+                                       self.omega_guess,
+                                       fprime = lambda x: self(x, return grad = True),
+                                       tol = self.tol, full_output = True)
 
         if (not self.opt_res.success):
             tmp_opt_res = self.opt_res
