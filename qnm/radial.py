@@ -563,7 +563,6 @@ def dgamma_domega(omega, a, s, m, A, n):
 def dgamma_dA(omega, a, s, m, A, n):
     return dD_dA(omega, a, s, m, A)[2]*(n-1) + dD_dA(omega, a, s, m, A)[4]
 
-
 def da_da(n, omega, a, s, m, A):
     return -(indexed_gamma(omega, a, s, m, A, n)*dalpha_da(omega, a, s, m, A, n-1) \
         + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_da(omega, a, s, m, A, n) )
@@ -576,7 +575,6 @@ def da_dA(n, omega, a, s, m, A):
     return -(indexed_gamma(omega, a, s, m, A, n)*dalpha_dA(omega, a, s, m, A, n-1) \
         + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_dA(omega, a, s, m, A, n))
 
-
 def db_da(n, omega, a, s, m, A):
     return dbeta_da(omega, a, s, m, A, n)
 
@@ -586,6 +584,15 @@ def db_domega(n, omega, a, s, m, A):
 def db_dA(n, omega, a, s, m, A):
     return dbeta_dA(omega, a, s, m, A, n)
 
+def da_vector(n, omega, a, s, m, A):
+    return np.array([da_da(n, omega, a, s, m, A),\
+                    da_domega(n, omega, a, s, m, A),\
+                    da_dA(n, omega, a, s, m, A)])
+
+def db_vector(n, omega, a, s, m, A):
+    return np.array([db_da(n, omega, a, s, m, A),\
+                    db_domega(n, omega, a, s, m, A),\
+                    db_dA(n, omega, a, s, m, A)])
 
 def lentz_with_grad(a, b, da, db,
                     args=(),
