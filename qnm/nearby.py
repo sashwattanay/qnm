@@ -10,7 +10,8 @@ import logging
 import numpy as np
 from scipy import optimize
 
-from .angular import sep_const_closest, C_and_sep_const_closest
+from radial import indexed_a, indexed_b
+from .angular import sep_const_closest, C_and_sep_const_closest, C_and_sep_const_closest_and_deriv_of_sep_const
 from . import radial
 
 # TODO some documentation here, better documentation throughout
@@ -174,11 +175,26 @@ The security guard has since been fired and the police have opened a criminal in
                                                                            self.Nr_min, self.Nr_max)
             # logging.info("Lentz terminated with cf_err={}, n_frac={}".format(self.cf_err, self.n_frac))
 
+            dCda, dCdomega, dCdA = \
+            radial.lentz_with_grad(indexed_a, indexed_b, da_vector, db_vector, args=(omega, self.a, self.s, self.m, A),
+                            tol=1.e-15)[1]
+
+            dAdc = C_and_sep_const_closest_and_deriv_of_sep_const(A, self.s, self.a*omega, self.m, 12)[2]
+            self._last_grad_inv_err = dCdomega + dCdA*dAdc*self.a
+
             # Insert optional poles
-            pole_factors = np.prod(omega - self.poles)
-            supp_err = inv_err / pole_factors
+            #pole_factors = np.prod(omega - self.poles)
+            #supp_err = self._last_inv_err / pole_factors
 
+            self.last_omega = omega
 
+            ## ===============>>>>>>>> self.last_omega = omega
+            ## ===============>>>>>>>> Which omega goes in on the first call (corresponding to
+            # the first argument being the value of the continued fraction)
+            # how does scipy.optimize.newton differ from scipy.optimize.root in terms of argument assignment?
+            # change radial.leaver_cf_inv_lentz  ---> lentz with grad
+            # optimize root has a different return type.
+            # pass the total derivative to Newton-Raphson
 
 
 
@@ -201,8 +217,9 @@ The security guard has since been fired and the police have opened a criminal in
         # tolerance on omega.
         self.opt_res = optimize.newton(self,
                                        self.omega_guess,
-                                       fprime = lambda x: self(x, return grad = True),
+                                       fprime = lambda x: self(x, return_grad = True),
                                        tol = self.tol, full_output = True)
+        ## ===============>>>>>>>> With fprime, why are we giving a function along with the argument? is it valid?
 
         if (not self.opt_res.success):
             tmp_opt_res = self.opt_res
