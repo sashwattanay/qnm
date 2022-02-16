@@ -563,7 +563,6 @@ def dgamma_domega(omega, a, s, m, A, n):
 def dgamma_dA(omega, a, s, m, A, n):
     return dD_dA(omega, a, s, m, A)[2]*(n-1) + dD_dA(omega, a, s, m, A)[4]
 
-
 def da_da(n, omega, a, s, m, A):
     return -(indexed_gamma(omega, a, s, m, A, n)*dalpha_da(omega, a, s, m, A, n-1) \
         + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_da(omega, a, s, m, A, n) )
@@ -576,7 +575,6 @@ def da_dA(n, omega, a, s, m, A):
     return -(indexed_gamma(omega, a, s, m, A, n)*dalpha_dA(omega, a, s, m, A, n-1) \
         + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_dA(omega, a, s, m, A, n))
 
-
 def db_da(n, omega, a, s, m, A):
     return dbeta_da(omega, a, s, m, A, n)
 
@@ -585,6 +583,131 @@ def db_domega(n, omega, a, s, m, A):
 
 def db_dA(n, omega, a, s, m, A):
     return dbeta_dA(omega, a, s, m, A, n)
+
+def da_vector(n, omega, a, s, m, A):
+    return np.array([da_da(n, omega, a, s, m, A),\
+                    da_domega(n, omega, a, s, m, A),\
+                    da_dA(n, omega, a, s, m, A)])
+
+def db_vector(n, omega, a, s, m, A):
+    return np.array([db_da(n, omega, a, s, m, A),\
+                    db_domega(n, omega, a, s, m, A),\
+                    db_dA(n, omega, a, s, m, A)])
+
+
+###################################################################################
+###################################################################################
+###################################################################################
+
+## nn is the inversion number of the continued fraction; see Eq. 44 of Cook-Zalutskiy
+def indexed_a_nn_inv_prt_1(n, omega, a, s, m, A, nn):
+    return indexed_a(n + nn, omega, a, s, m, A)
+
+def indexed_b_nn_inv_prt_1(n, omega, a, s, m, A, nn):
+    return indexed_b(n + nn, omega, a, s, m, A)
+
+def da_da_nn_inv_prt_1(n, omega, a, s, m, A, nn):
+    return da_da(n + nn, omega, a, s, m, A)
+
+def da_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn):
+    return da_domega(n + nn, omega, a, s, m, A)
+
+def da_dA_nn_inv_prt_1(n, omega, a, s, m, A, nn):
+    return da_dA(n + nn, omega, a, s, m, A)
+
+def db_da_nn_inv_prt_1(n, omega, a, s, m, A, nn):
+    return db_da(n + nn, omega, a, s, m, A)
+
+def db_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn):
+    return db_domega(n + nn, omega, a, s, m, A)
+
+def db_dA_nn_inv_prt_1(n, omega, a, s, m, A, nn):
+    return db_dA(n + nn, omega, a, s, m, A)
+
+def da_nn_inv_prt_1_vector(n, omega, a, s, m, A, nn):
+    return np.array([da_da_nn_inv_prt_1(n, omega, a, s, m, A, nn),\
+                    da_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn),\
+                    da_dA_nn_inv_prt_1(n, omega, a, s, m, A, nn)])
+
+def db_nn_inv_prt_1_vector(n, omega, a, s, m, A, nn):
+    return np.array([db_da_nn_inv_prt_1(n, omega, a, s, m, A, nn),\
+                    db_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn),\
+                    db_dA_nn_inv_prt_1(n, omega, a, s, m, A, nn)])
+
+###################################################################################
+###################################################################################
+###################################################################################
+def indexed_a_nn_inv_prt_2(n, omega, a, s, m, A, nn):
+    if n > nn:
+        return 0.
+    else:
+        return indexed_a(nn - n + 1, omega, a, s, m, A)
+
+def indexed_b_nn_inv_prt_2(n, omega, a, s, m, A, nn):
+    if n == 0:
+        return 0.
+    else:
+        return indexed_b(nn - n, omega, a, s, m, A)
+
+def da_da_nn_inv_prt_2(n, omega, a, s, m, A, nn):
+    if n > nn:
+        return 0.
+    else:
+        return da_da(nn - n + 1, omega, a, s, m, A)
+
+def da_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn):
+    if n > nn:
+        return 0.
+    else:
+        return da_domega(nn - n + 1, omega, a, s, m, A)
+
+def da_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn):
+    if n > nn:
+        return 0.
+    else:
+        return da_dA(nn - n + 1, omega, a, s, m, A)
+
+
+def db_da_nn_inv_prt_2(n, omega, a, s, m, A, nn):
+    if n == 0:
+        return 0.
+    else:
+        return db_da(nn - n, omega, a, s, m, A)
+
+
+def db_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn):
+    if n == 0:
+        return 0.
+    else:
+        return db_domega(nn - n, omega, a, s, m, A)
+
+
+def db_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn):
+    if n == 0:
+        return 0.
+    else:
+        return db_dA(nn - n, omega, a, s, m, A)
+
+def da_nn_inv_prt_2_vector(n, omega, a, s, m, A, nn):
+    return np.array([da_da_nn_inv_prt_2(n, omega, a, s, m, A, nn),\
+                    da_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn),\
+                    da_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn)])
+
+def db_nn_inv_prt_2_vector(n, omega, a, s, m, A, nn):
+    return np.array([db_da_nn_inv_prt_2(n, omega, a, s, m, A, nn),\
+                    db_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn),\
+                    db_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn)])
+
+
+
+
+
+
+
+
+###################################################################################
+###################################################################################
+###################################################################################
 
 
 def lentz_with_grad(a, b, da, db,
@@ -710,7 +833,125 @@ def lentz_with_grad(a, b, da, db,
 
 
 
+def lentz_with_grad_v2(a, b, da, db,
+                    args=(),
+                    tol=1.e-10,
+                    N_min=0, N_max=np.Inf,
+                    tiny=1.e-30):
+    """Compute a continued fraction (and its derivative) via modified
+    Lentz's method.
 
+    This implementation is by the book [1]_.  The value to compute is:
+      b_0 + a_1/( b_1 + a_2/( b_2 + a_3/( b_3 + ...)))
+    where a_n = a(n, *args) and b_n = b(n, *args).
+
+    Parameters
+    ----------
+    a: callable returning numeric.
+    b: callable returning numeric.
+    da: callable returning array-like.
+    db: callable returning array-like.
+
+    args: tuple [default: ()]
+      Additional arguments to pass to the user-defined functions a, b,
+      da, and db.  If given, the additional arguments are passed to
+      all user-defined functions, e.g. `a(n, *args)`.  So if, for
+      example, `a` has the signature `a(n, x, y)`, then `b` must have
+      the same  signature, and `args` must be a tuple of length 2,
+      `args=(x,y)`.
+
+    tol: float [default: 1.e-10]
+      Tolerance for termination of evaluation.
+
+    N_min: int [default: 0]
+      Minimum number of iterations to evaluate.
+
+    N_max: int or comparable [default: np.Inf]
+      Maximum number of iterations to evaluate.
+
+    tiny: float [default: 1.e-30]
+      Very small number to control convergence of Lentz's method when
+      there is cancellation in a denominator.
+
+    Returns
+    -------
+    (float, array-like, float, int)
+      The first element of the tuple is the value of the continued
+      fraction.
+      The second element is the gradient.
+      The third element is the estimated error.
+      The fourth element is the number of iterations.
+
+    References
+    ----------
+    .. [1] WH Press, SA Teukolsky, WT Vetterling, BP Flannery,
+       "Numerical Recipes," 3rd Ed., Cambridge University Press 2007,
+       ISBN 0521880688, 9780521880688 .
+
+    """
+
+    if not isinstance(args, tuple):
+        args = (args,)
+
+    f_old = b(0, *args)
+
+    if (f_old == 0):
+        f_old = tiny
+
+    C_old = f_old
+    D_old = 0.
+
+    # f_0 = b_0, so df_0 = db_0
+    df_old = db(0, *args)
+    dC_old = df_old
+    dD_old = 0.
+
+    conv = False
+
+    j = 1
+
+    while ((j < N_max )):    # the argument N_max should be overtoneIndex + 1
+
+        aj, bj = a(j, *args), b(j, *args)
+        daj, dbj = da(j, *args), db(j, *args)
+
+        # First: modified Lentz
+        D_new = bj + aj * D_old
+
+        if (D_new == 0):
+            D_new = tiny
+        D_new = 1./D_new
+
+        C_new = bj + aj / C_old
+
+        if (C_new == 0):
+            C_new = tiny
+
+        Delta = C_new * D_new
+        f_new = f_old * Delta
+
+        # Second: the derivative calculations
+        # The only possibly dangerous denominator is C_old,
+        # but it can't be 0 (at worst it's "tiny")
+        dC_new = dbj + (daj*C_old - aj*dC_old)/(C_old*C_old)
+        dD_new = -D_new*D_new*(dbj + daj*D_old + aj*dD_old)
+        df_new = df_old*Delta + f_old*dC_new*D_new + f_old*C_new*dD_new
+
+        # Did we converge?
+        if ((j > N_min) and (np.abs(Delta - 1.) < tol)):
+            conv = True
+
+        # Set up for next iter
+        j      = j + 1
+        C_old  = C_new
+        D_old  = D_new
+        f_old  = f_new
+        dC_old = dC_new
+        dD_old = dD_new
+        df_old = df_new
+
+    # Success or failure can be assessed by the user
+    return f_new, df_new, np.abs(Delta - 1.), j-1
 
 
 
