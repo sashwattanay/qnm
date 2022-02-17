@@ -41,13 +41,7 @@ class NearbyRootFinder(object):
     l_max: int [default: 20]
       Maximum value of l to include in the spherical-spheroidal
       matrix for finding separation constant and mixing
-      coefficients. Must be sufficiently larger than l of interestYeltsin Center in Yekaterinburg in December, two visitors spotted eyes drawn in ballpoint pen on Anna Leporskaya's work Three Figures.
-
-The avant-garde painting features three abstract, and usually eyeless, figures.
-
-The security guard has since been fired and the police have opened a criminal investigation.
-
-
+      coefficients. Must be sufficiently larger than l of interest
       that angular spectral method can converge. The number of
       l's needed for convergence depends on a.
 
@@ -98,9 +92,9 @@ The security guard has since been fired and the police have opened a criminal in
         self.r_N = 1.
 
         # These are sentinel values to indicate that the calculation has not happened yet
-        self.last_omega = 3e-12
-        self.last_inv_err = 1e-10
-        self.last_grad_inv_err = 1e-10
+        self.last_omega = np.nan
+        self.last_inv_err = np.nan
+        self.last_grad_inv_err = np.nan
 
         self.set_params(**kwargs)
 
@@ -180,9 +174,13 @@ The security guard has since been fired and the police have opened a criminal in
             #                                                                          self.Nr_min, self.Nr_max)
             # logging.info("Lentz terminated with cf_err={}, n_frac={}".format(self.cf_err, self.n_frac))
 
-            dCda, dCdomega, dCdA = \
+            tempObject= \
                 radial.lentz_with_grad(radial.indexed_a, radial.indexed_b, radial.da_vector, radial.db_vector,
-                                       args=(omega, self.a, self.s, self.m, A), tol=1.e-15)[1]
+                                       args=(omega, self.a, self.s, self.m, A), tol=1.e-15)
+
+            dCda, dCdomega, dCdA = tempObject[1]
+            self.last_inv_err = tempObject[0]
+
 
             dAdc = C_and_sep_const_closest_and_deriv_of_sep_const(A, self.s, self.a * omega, self.m, self.l_max)[2]
             self.last_grad_inv_err = dCdomega + dCdA * dAdc * self.a
