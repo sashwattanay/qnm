@@ -128,6 +128,12 @@ class KerrSpinSeq(object):
         self.A     = []
         self.C     = []
 
+        self.last_grad_inv_err = []
+        self.partial_der_dCda = []
+        self.partial_der_dCdomega = []
+        self.partial_der_dCdA = []
+        self.total_der_dAdc = []
+
         self.delta_a_prop = []
 
         self._interp_o_r = None
@@ -135,7 +141,7 @@ class KerrSpinSeq(object):
         self._interp_A_r = None
         self._interp_A_i = None
 
-        # We need and instance of root finder
+        # We need an instance of root finder
         self.solver = NearbyRootFinder(s=self.s, m=self.m,
                                        l_max=self.l_max,
                                        tol=self.tol,

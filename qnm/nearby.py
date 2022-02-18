@@ -152,6 +152,15 @@ class NearbyRootFinder(object):
         self.cf_err = None
         self.n_frac = None
 
+        self.last_omega = None
+        self.last_inv_err = None
+        self.last_grad_inv_err = None
+
+        self.partial_der_dCda = None
+        self.partial_der_dCdomega = None
+        self.partial_der_dCdA = None
+        self.total_der_dAdc = None
+
         self.poles = np.array([])
 
     def __call__(self, omega, return_grad=False):
@@ -165,9 +174,11 @@ class NearbyRootFinder(object):
             # oblateness parameter
             c = self.a * omega
             # Separation constant at this a*omega
-            A = sep_const_closest(self.A0, self.s, c, self.m,
-                                  self.l_max)
-            dAdc = C_and_sep_const_closest_and_deriv_of_sep_const(A, self.s, self.a * omega, self.m, self.l_max)[2]
+
+            tempObject = \
+                C_and_sep_const_closest_and_deriv_of_sep_const(self.A0, self.s, self.a * omega, self.m, self.l_max)
+            A = tempObject[0]
+            dAdc = tempObject[2]
 
             # We are trying to find a root of this function:
             # inv_err = radial.leaver_cf_trunc_inversion(omega, self.a,
