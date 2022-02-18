@@ -210,6 +210,12 @@ class KerrSpinSeq(object):
             self.cf_err.append(cf_err)
             self.n_frac.append(n_frac)
 
+            self.last_grad_inv_err.append(self.solver.last_grad_inv_err)
+            self.partial_der_dCda.append(self.solver.partial_der_dCda)
+            self.partial_der_dCdomega.append(self.solver.partial_der_dCdomega)
+            self.partial_der_dCdA.append(self.solver.partial_der_dCdA)
+            self.total_der_dAdc.append(self.solver.total_der_dAdc)
+
             # We always try to get the a_max value. If that's the
             # value we just did, break out of the loop by hand
             if (_a == self.a_max):
@@ -236,9 +242,20 @@ class KerrSpinSeq(object):
         # the previously-computed values. When we have two or more
         # values, we can do a quadratic fit. Otherwise just start
         # at the same value.
+
         _a = self.a[-1]
 
-        if (len(self.a) < 3):
+        domegada = (-self.partial_der_dCda[-1] - self.total_der_dAdc[-1] * self.partial_der_dCdA[-1] \
+                    * self.omega[-1]) / (_a * self.total_der_dAdc[-1] * self.partial_der_dCdA[-1] \
+                                         + self.partial_der_dCdomega[-1])
+
+        omega_guess = self.omega[-1] + domegada * self.delta_a
+        A0 = self.total_der_dAdc[-1] * (_a* (omega_guess - self.omega[-1]) + self.omega[-1]* self.delta_a)
+        _a = _a + self.delta_a
+
+
+
+        """if (len(self.a) < 3):
             omega_guess = self.omega[-1]
             A0          = self.A[-1]
 
@@ -299,6 +316,7 @@ class KerrSpinSeq(object):
 
             omega_guess = interp_o_r(_a) + 1.j*interp_o_i(_a)
             A0          = interp_A_r(_a) + 1.j*interp_A_i(_a)
+            """
 
         return _a, omega_guess, A0
 
