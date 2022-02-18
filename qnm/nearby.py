@@ -158,6 +158,7 @@ class NearbyRootFinder(object):
             # Separation constant at this a*omega
             A = sep_const_closest(self.A0, self.s, c, self.m,
                                   self.l_max)
+            dAdc = C_and_sep_const_closest_and_deriv_of_sep_const(A, self.s, self.a * omega, self.m, self.l_max)[2]
 
             # We are trying to find a root of this function:
             # inv_err = radial.leaver_cf_trunc_inversion(omega, self.a,
@@ -181,8 +182,6 @@ class NearbyRootFinder(object):
             dCda, dCdomega, dCdA = tempObject[1]
             self.last_inv_err = tempObject[0]
 
-
-            dAdc = C_and_sep_const_closest_and_deriv_of_sep_const(A, self.s, self.a * omega, self.m, self.l_max)[2]
             self.last_grad_inv_err = dCdomega + dCdA * dAdc * self.a
 
             # Insert optional poles
