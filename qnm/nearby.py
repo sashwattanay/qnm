@@ -95,6 +95,10 @@ class NearbyRootFinder(object):
         self.last_omega = np.nan
         self.last_inv_err = np.nan
         self.last_grad_inv_err = np.nan
+        self.partial_der_dCda = np.nan
+        self.partial_der_dCdomega = np.nan
+        self.partial_der_dCdA = np.nan
+        self.total_der_dAdc = np.nan
 
         self.set_params(**kwargs)
 
@@ -122,6 +126,11 @@ class NearbyRootFinder(object):
         self.last_omega = kwargs.get('last_omega', self.last_omega)
         self.last_inv_err = kwargs.get('last_inv_err', self.last_inv_err)
         self.last_grad_inv_err = kwargs.get('last_grad_inv_err', self.last_grad_inv_err)
+
+        self.partial_der_dCda = kwargs.get('partial_der_dCda', self.partial_der_dCda)
+        self.partial_der_dCdomega = kwargs.get('partial_der_dCdomega', self.partial_der_dCdomega)
+        self.partial_der_dCdA = kwargs.get('partial_der_dCdA', self.partial_der_dCdA)
+        self.total_der_dAdc = kwargs.get('total_der_dAdc', self.total_der_dAdc)
 
         # Optional pole factors
         self.poles = np.array([])
@@ -190,14 +199,11 @@ class NearbyRootFinder(object):
 
             self.last_omega = omega
 
-            ## ===============>>>>>>>> Why is lmax = 12 in
-            # C_and_sep_const_closest_and_deriv_of_sep_const(A, self.s, self.a * omega, self.m, 12)[2]
-            ## ===============>>>>>>>> Which omega goes in on the first call (corresponding to
-            # the first argument being the value of the continued fraction)
-            # how does scipy.optimize.newton differ from scipy.optimize.root in terms of argument assignment?
-            # change radial.leaver_cf_inv_lentz  ---> lentz with grad
-            # optimize root has a different return type.
-            # pass the total derivative to Newton-Raphson
+            self.partial_der_dCda = dCda
+            self.partial_der_dCdomega = dCdomega
+            self.partial_der_dCdA = dCdA
+            self.total_der_dAdc = dAdc
+
 
         if return_grad:
             return self.last_grad_inv_err
