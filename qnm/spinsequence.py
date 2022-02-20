@@ -242,6 +242,7 @@ class KerrSpinSeq(object):
         # the previously-computed values. When we have two or more
         # values, we can do a quadratic fit. Otherwise just start
         # at the same value.
+
         _a = self.a[-1]
 
         domegada = (-self.partial_der_dCda[-1] - self.total_der_dAdc[-1] * self.partial_der_dCdA[-1] 
@@ -249,6 +250,7 @@ class KerrSpinSeq(object):
                                          + self.partial_der_dCdomega[-1])
 
         omega_guess = self.omega[-1] + domegada * self.delta_a
+
         A0 = self.A[-1] + self.total_der_dAdc[-1] * (
                     _a * (omega_guess - self.omega[-1]) + self.omega[-1] * self.delta_a)
         _a = _a + self.delta_a

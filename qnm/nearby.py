@@ -189,6 +189,7 @@ class NearbyRootFinder(object):
             # TODO!
             # Determine the value to use for cf_tol based on
             # the Jacobian, cf_tol = |d cf(\omega)/d\omega| tol.
+
             self.last_inv_err, self.cf_err, self.n_frac = radial.leaver_cf_inv_lentz(omega, self.a,
                                                                                       self.s, self.m, A,
                                                                                       self.n_inv, self.cf_tol,
@@ -210,8 +211,8 @@ class NearbyRootFinder(object):
             self.last_grad_inv_err = dCdomega + dCdA * dAdc * self.a
 
             # Insert optional poles
-            # pole_factors = np.prod(omega - self.poles)
-            # supp_err = self.last_inv_err / pole_factors
+            pole_factors = np.prod(omega - self.poles)
+            self.last_inv_err = self.last_inv_err / pole_factors
 
             self.last_omega = omega
 
