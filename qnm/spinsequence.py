@@ -250,7 +250,7 @@ class KerrSpinSeq(object):
                                          + self.partial_der_dCdomega[-1])
 
         omega_guess = self.omega[-1] + domegada * self.delta_a
-        A0 = self.total_der_dAdc[-1] * (_a* (omega_guess - self.omega[-1]) + self.omega[-1]* self.delta_a)
+        A0 = self.A[-1] + self.total_der_dAdc[-1] * (_a* (omega_guess - self.omega[-1]) + self.omega[-1]* self.delta_a)
         _a = _a + self.delta_a
 
 
