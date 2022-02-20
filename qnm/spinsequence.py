@@ -1,7 +1,6 @@
 """ Follow a QNM labeled by (s,l,m,n) as spin varies from a=0 upwards.
 """
 
-
 from __future__ import division, print_function, absolute_import
 
 import logging
@@ -14,6 +13,7 @@ from .nearby import NearbyRootFinder
 
 from .schwarzschild.approx import Schw_QNM_estimate
 from .schwarzschild.tabulated import QNMDict
+
 
 # TODO some documentation here, better documentation throughout
 
@@ -89,18 +89,18 @@ class KerrSpinSeq(object):
     def __init__(self, *args, **kwargs):
 
         # Read args
-        self.a_max       = kwargs.get('a_max',       0.99)
+        self.a_max = kwargs.get('a_max', 0.99)
         # TODO Maybe change this to delta_a0
-        self.delta_a     = kwargs.get('delta_a',     0.005)
+        self.delta_a = kwargs.get('delta_a', 0.005)
         self.delta_a_min = kwargs.get('delta_a_min', 1.e-5)
         self.delta_a_max = kwargs.get('delta_a_max', 4.e-3)
-        self.s           = kwargs.get('s',           -2)
-        self.m           = kwargs.get('m',           2)
-        self.l           = kwargs.get('l',           2)
-        self.l_max       = kwargs.get('l_max',       20)
-        self.tol         = kwargs.get('tol',         np.sqrt(np.finfo(float).eps))
-        self.cf_tol      = kwargs.get('cf_tol',      1e-10)
-        self.n           = kwargs.get('n',           0)
+        self.s = kwargs.get('s', -2)
+        self.m = kwargs.get('m', 2)
+        self.l = kwargs.get('l', 2)
+        self.l_max = kwargs.get('l_max', 20)
+        self.tol = kwargs.get('tol', np.sqrt(np.finfo(float).eps))
+        self.cf_tol = kwargs.get('cf_tol', 1e-10)
+        self.n = kwargs.get('n', 0)
 
         if ('omega_guess' in kwargs.keys()):
             self.omega_guess = kwargs.get('omega_guess')
@@ -108,10 +108,10 @@ class KerrSpinSeq(object):
             qnm_dict = QNMDict()
             self.omega_guess = qnm_dict(self.s, self.l, self.n)[0]
 
-        self.Nr          = kwargs.get('Nr',          300)
-        self.Nr_min      = self.Nr
-        self.Nr_max      = kwargs.get('Nr_max',      4000)
-        self.r_N         = kwargs.get('r_N',         0.j)
+        self.Nr = kwargs.get('Nr', 300)
+        self.Nr_min = self.Nr
+        self.Nr_max = kwargs.get('Nr_max', 4000)
+        self.r_N = kwargs.get('r_N', 0.j)
 
         # TODO check that values make sense!!!
         if not (self.a_max < 1.):
@@ -121,12 +121,12 @@ class KerrSpinSeq(object):
                 self.l, l_min(self.s, self.m)))
 
         # Create array of a's, omega's, and A's
-        self.a     = []
+        self.a = []
         self.omega = []
-        self.cf_err= []
-        self.n_frac= []
-        self.A     = []
-        self.C     = []
+        self.cf_err = []
+        self.n_frac = []
+        self.A = []
+        self.C = []
 
         self.last_grad_inv_err = []
         self.partial_der_dCda = []
@@ -158,8 +158,8 @@ class KerrSpinSeq(object):
         logging.info("l={}, m={}, n={} starting".format(
             self.l, self.m, self.n))
 
-        i  = 0  # TODO Allow to start at other values
-        _a = 0. # TODO Allow to start at other values
+        i = 0  # TODO Allow to start at other values
+        _a = 0.  # TODO Allow to start at other values
 
         # Flag about whether we've warned re: imag axis
         warned_imag_axis = False
@@ -193,7 +193,7 @@ class KerrSpinSeq(object):
 
             # Warn if we're very close to the imaginary axis
             if ((np.abs(np.real(result)) < self.tol)
-                and not warned_imag_axis):
+                    and not warned_imag_axis):
                 logging.warn("Danger! At a={}, found Re[omega]={}, "
                              "twithin tol={} of the imaginary axis. "
                              "this mode may become algebraically "
@@ -223,7 +223,7 @@ class KerrSpinSeq(object):
 
             _a, omega_guess, A0 = self._propose_next_a_om_A()
 
-            i = i+1
+            i = i + 1
             # Go to the next iteration of the _a loop
 
         logging.info("s={}, l={}, m={}, n={} completed with {} points".format(
@@ -242,18 +242,16 @@ class KerrSpinSeq(object):
         # the previously-computed values. When we have two or more
         # values, we can do a quadratic fit. Otherwise just start
         # at the same value.
-
         _a = self.a[-1]
 
-        domegada = (-self.partial_der_dCda[-1] - self.total_der_dAdc[-1] * self.partial_der_dCdA[-1] \
-                    * self.omega[-1]) / (_a * self.total_der_dAdc[-1] * self.partial_der_dCdA[-1] \
+        domegada = (-self.partial_der_dCda[-1] - self.total_der_dAdc[-1] * self.partial_der_dCdA[-1] 
+                    * self.omega[-1]) / (_a * self.total_der_dAdc[-1] * self.partial_der_dCdA[-1] 
                                          + self.partial_der_dCdomega[-1])
 
         omega_guess = self.omega[-1] + domegada * self.delta_a
-        A0 = self.A[-1] + self.total_der_dAdc[-1] * (_a* (omega_guess - self.omega[-1]) + self.omega[-1]* self.delta_a)
+        A0 = self.A[-1] + self.total_der_dAdc[-1] * (
+                    _a * (omega_guess - self.omega[-1]) + self.omega[-1] * self.delta_a)
         _a = _a + self.delta_a
-
-
 
         """if (len(self.a) < 3):
             omega_guess = self.omega[-1]
@@ -316,7 +314,7 @@ class KerrSpinSeq(object):
 
             omega_guess = interp_o_r(_a) + 1.j*interp_o_i(_a)
             A0          = interp_A_r(_a) + 1.j*interp_A_i(_a)
-            """
+        """
 
         return _a, omega_guess, A0
 
@@ -328,27 +326,27 @@ class KerrSpinSeq(object):
 
         # TODO do we want to allow extrapolation?
 
-        k=3 # cubic
+        k = 3  # cubic
 
         # Sadly, UnivariateSpline does not work on complex data
         self._interp_o_r = interpolate.UnivariateSpline(
             self.a, np.real(self.omega),
-            s=0, # No smoothing!
+            s=0,  # No smoothing!
             k=k, ext=0)
 
         self._interp_o_i = interpolate.UnivariateSpline(
             self.a, np.imag(self.omega),
-            s=0, # No smoothing!
+            s=0,  # No smoothing!
             k=k, ext=0)
 
         self._interp_A_r = interpolate.UnivariateSpline(
             self.a, np.real(self.A),
-            s=0, # No smoothing!
+            s=0,  # No smoothing!
             k=k, ext=0)
 
         self._interp_A_i = interpolate.UnivariateSpline(
             self.a, np.imag(self.A),
-            s=0, # No smoothing!
+            s=0,  # No smoothing!
             k=k, ext=0)
 
     def __call__(self, a, store=False, interp_only=False, resolve_if_found=False):
@@ -421,7 +419,7 @@ class KerrSpinSeq(object):
         A_i = self._interp_A_i(a)
 
         omega_guess = complex(o_r, o_i)
-        A_guess     = complex(A_r, A_i)
+        A_guess = complex(A_r, A_i)
 
         if interp_only:
             # Return the interpolated (or extrapolated) values.
@@ -456,7 +454,7 @@ class KerrSpinSeq(object):
                 # a larger spin
                 try:
                     insert_ind = next(i for i, _a in
-                                      enumerate( self.a ) if _a > a)
+                                      enumerate(self.a) if _a > a)
                 except StopIteration:
                     insert_ind = len(self.a)
 
@@ -470,7 +468,7 @@ class KerrSpinSeq(object):
         return result, self.solver.A, self.solver.C
 
     def __repr__(self):
-    # "The goal of __str__ is to be readable; the goal of __repr__ is to be unambiguous." --- stackoverflow
+        # "The goal of __str__ is to be readable; the goal of __repr__ is to be unambiguous." --- stackoverflow
         from textwrap import dedent
 
         rep = """<{} with s={}, l={}, m={}, n={},
@@ -485,6 +483,6 @@ class KerrSpinSeq(object):
                          str(self.l_max),
                          str(self.tol),
                          str(self.Nr), str(self.Nr_min), str(self.Nr_max),
-                         str(self.a[0]), str(len(self.a)-2), str(self.a[-1]))
+                         str(self.a[0]), str(len(self.a) - 2), str(self.a[-1]))
 
         return dedent(rep)

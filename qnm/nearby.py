@@ -189,18 +189,23 @@ class NearbyRootFinder(object):
             # TODO!
             # Determine the value to use for cf_tol based on
             # the Jacobian, cf_tol = |d cf(\omega)/d\omega| tol.
-            # self.last_inv_err, self.cf_err, self.n_frac = radial.leaver_cf_inv_lentz(omega, self.a,
-            #                                                                          self.s, self.m, A,
-            #                                                                          self.n_inv, self.cf_tol,
-            #                                                                          self.Nr_min, self.Nr_max)
+            self.last_inv_err, self.cf_err, self.n_frac = radial.leaver_cf_inv_lentz(omega, self.a,
+                                                                                      self.s, self.m, A,
+                                                                                      self.n_inv, self.cf_tol,
+                                                                                      self.Nr_min, self.Nr_max)
             # logging.info("Lentz terminated with cf_err={}, n_frac={}".format(self.cf_err, self.n_frac))
 
-            tempObject= \
-                radial.lentz_with_grad(radial.indexed_a, radial.indexed_b, radial.da_vector, radial.db_vector,
-                                       args=(omega, self.a, self.s, self.m, A), tol=1.e-15)
+            tempObject_A = \
+                radial.lentz_with_grad(radial.indexed_a_nn_inv_prt_1, radial.indexed_b_nn_inv_prt_1,
+                                       radial.da_nn_inv_prt_1_vector, radial.db_nn_inv_prt_1_vector,
+                                       args=(omega, self.a, self.s, self.m, A, self.n_inv), tol=1.e-15)
+            tempObject_B = \
+                radial.lentz_with_grad(radial.indexed_a_nn_inv_prt_2, radial.indexed_b_nn_inv_prt_2,
+                                       radial.da_nn_inv_prt_2_vector, radial.db_nn_inv_prt_2_vector,
+                                       args=(omega, self.a, self.s, self.m, A, self.n_inv), tol=1.e-15)
 
-            dCda, dCdomega, dCdA = tempObject[1]
-            self.last_inv_err = tempObject[0]
+            dCda, dCdomega, dCdA = tempObject_A[1] + tempObject_B[1]
+            self.last_inv_err = tempObject_A[0] + tempObject_B[0]
 
             self.last_grad_inv_err = dCdomega + dCdA * dAdc * self.a
 
@@ -214,7 +219,6 @@ class NearbyRootFinder(object):
             self.partial_der_dCdomega = dCdomega
             self.partial_der_dCdA = dCdA
             self.total_der_dAdc = dAdc
-
 
         if return_grad:
             return self.last_grad_inv_err
