@@ -190,10 +190,10 @@ class NearbyRootFinder(object):
             # Determine the value to use for cf_tol based on
             # the Jacobian, cf_tol = |d cf(\omega)/d\omega| tol.
 
-            self.last_inv_err, self.cf_err, self.n_frac = radial.leaver_cf_inv_lentz(omega, self.a,
-                                                                                      self.s, self.m, A,
-                                                                                      self.n_inv, self.cf_tol,
-                                                                                      self.Nr_min, self.Nr_max)
+            # self.last_inv_err, self.cf_err, self.n_frac = radial.leaver_cf_inv_lentz(omega, self.a,
+            #                                                                          self.s, self.m, A,
+            #                                                                          self.n_inv, self.cf_tol,
+            #                                                                          self.Nr_min, self.Nr_max)
             # logging.info("Lentz terminated with cf_err={}, n_frac={}".format(self.cf_err, self.n_frac))
 
             tempObject_A = \
@@ -201,14 +201,17 @@ class NearbyRootFinder(object):
                                        radial.da_nn_inv_prt_1_vector, radial.db_nn_inv_prt_1_vector,
                                        args=(omega, self.a, self.s, self.m, A, self.n_inv), tol=1.e-15)
             tempObject_B = \
-                radial.lentz_with_grad(radial.indexed_a_nn_inv_prt_2, radial.indexed_b_nn_inv_prt_2,
+                radial.lentz_with_grad_v2(radial.indexed_a_nn_inv_prt_2, radial.indexed_b_nn_inv_prt_2,
                                        radial.da_nn_inv_prt_2_vector, radial.db_nn_inv_prt_2_vector,
-                                       args=(omega, self.a, self.s, self.m, A, self.n_inv), tol=1.e-15)
+                                       args=(omega, self.a, self.s, self.m, A, self.n_inv),
+                                       N_max = self.n_inv + 2, tol=1.e-15)
 
             dCda, dCdomega, dCdA = tempObject_A[1] + tempObject_B[1]
             self.last_inv_err = tempObject_A[0] + tempObject_B[0]
 
             self.last_grad_inv_err = dCdomega + dCdA * dAdc * self.a
+            self.cf_err = tempObject_A[2]
+            self.n_frac = tempObject_A[3]
 
             # Insert optional poles
             pole_factors = np.prod(omega - self.poles)

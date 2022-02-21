@@ -432,32 +432,33 @@ def leaver_cf_inv_lentz(omega, a, s, m, A, n_inv,
 
 
 
-
+@njit(cache=True)
 def indexed_alpha(omega, a, s, m, A, n):
 
     D = D_coeffs(omega, a, s, m, A)
 
     return n*n + (D[0] + 1.)*n + D[0]
 
-
+@njit(cache=True)
 def indexed_beta(omega, a, s, m, A, n):
 
     D = D_coeffs(omega, a, s, m, A)
 
     return -2.*n*n + (D[1] + 2.)*n + D[3]
 
-
+@njit(cache=True)
 def indexed_gamma(omega, a, s, m, A, n):
 
     D = D_coeffs(omega, a, s, m, A)
 
     return n*n + (D[2] - 3.)*n + D[4] - D[2] + 2.
 
-
+@njit(cache=True)
 def indexed_a(n, omega, a, s, m, A):
 
     return -indexed_alpha(omega, a, s, m, A, n-1)*indexed_gamma(omega, a, s, m, A, n)
 
+@njit(cache=True)
 def indexed_b(n, omega, a, s, m, A):
 
     return indexed_beta(omega, a, s, m, A, n)
@@ -465,7 +466,7 @@ def indexed_b(n, omega, a, s, m, A):
 
 ################################################################
 ################################################################
-
+@njit(cache=True)
 def dD_da(omega, a, s, m, A):
 
     M = 1.
@@ -495,6 +496,7 @@ def dD_da(omega, a, s, m, A):
 
     return dD_array
 
+@njit(cache=True)
 def dD_domega(omega, a, s, m, A):
 
     M = 1.
@@ -522,7 +524,7 @@ def dD_domega(omega, a, s, m, A):
 
     return dD_array
 
-
+@njit(cache=True)
 def dD_dA(omega, a, s, m, A):
 
     dD_array = [0.j] * 5
@@ -535,60 +537,76 @@ def dD_dA(omega, a, s, m, A):
 
     return dD_array
 
-
+@njit(cache=True)
 def dalpha_da(omega, a, s, m, A, n):
     return dD_da(omega, a, s, m, A)[0]*(n+1.)
 
+@njit(cache=True)
 def dalpha_domega(omega, a, s, m, A, n):
     return dD_domega(omega, a, s, m, A)[0]*(n+1.)
 
+@njit(cache=True)
 def dalpha_dA(omega, a, s, m, A, n):
     return dD_dA(omega, a, s, m, A)[0]*(n+1.)
 
+@njit(cache=True)
 def dbeta_da(omega, a, s, m, A, n):
     return dD_da(omega, a, s, m, A)[1]*n + dD_da(omega, a, s, m, A)[3]
 
+@njit(cache=True)
 def dbeta_domega(omega, a, s, m, A, n):
     return dD_domega(omega, a, s, m, A)[1]*n + dD_domega(omega, a, s, m, A)[3]
 
+@njit(cache=True)
 def dbeta_dA(omega, a, s, m, A, n):
     return dD_dA(omega, a, s, m, A)[1]*n + dD_dA(omega, a, s, m, A)[3]
 
+@njit(cache=True)
 def dgamma_da(omega, a, s, m, A, n):
     return dD_da(omega, a, s, m, A)[2]*(n-1) + dD_da(omega, a, s, m, A)[4]
 
+@njit(cache=True)
 def dgamma_domega(omega, a, s, m, A, n):
     return dD_domega(omega, a, s, m, A)[2]*(n-1) + dD_domega(omega, a, s, m, A)[4]
 
+@njit(cache=True)
 def dgamma_dA(omega, a, s, m, A, n):
     return dD_dA(omega, a, s, m, A)[2]*(n-1) + dD_dA(omega, a, s, m, A)[4]
 
+@njit(cache=True)
 def da_da(n, omega, a, s, m, A):
     return -(indexed_gamma(omega, a, s, m, A, n)*dalpha_da(omega, a, s, m, A, n-1) \
         + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_da(omega, a, s, m, A, n) )
 
+@njit(cache=True)
 def da_domega(n, omega, a, s, m, A):
     return -(indexed_gamma(omega, a, s, m, A, n)*dalpha_domega(omega, a, s, m, A, n-1) \
         + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_domega(omega, a, s, m, A, n))
 
+@njit(cache=True)
 def da_dA(n, omega, a, s, m, A):
     return -(indexed_gamma(omega, a, s, m, A, n)*dalpha_dA(omega, a, s, m, A, n-1) \
         + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_dA(omega, a, s, m, A, n))
 
+@njit(cache=True)
 def db_da(n, omega, a, s, m, A):
     return dbeta_da(omega, a, s, m, A, n)
 
+@njit(cache=True)
 def db_domega(n, omega, a, s, m, A):
     return dbeta_domega(omega, a, s, m, A, n)
 
+@njit(cache=True)
 def db_dA(n, omega, a, s, m, A):
     return dbeta_dA(omega, a, s, m, A, n)
 
+@njit(cache=True)
 def da_vector(n, omega, a, s, m, A):
     return np.array([da_da(n, omega, a, s, m, A),\
                     da_domega(n, omega, a, s, m, A),\
                     da_dA(n, omega, a, s, m, A)])
 
+@njit(cache=True)
 def db_vector(n, omega, a, s, m, A):
     return np.array([db_da(n, omega, a, s, m, A),\
                     db_domega(n, omega, a, s, m, A),\
@@ -600,35 +618,45 @@ def db_vector(n, omega, a, s, m, A):
 ###################################################################################
 
 ## nn is the inversion number of the continued fraction; see Eq. 44 of Cook-Zalutskiy
+@njit(cache=True)
 def indexed_a_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return indexed_a(n + nn, omega, a, s, m, A)
 
+@njit(cache=True)
 def indexed_b_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return indexed_b(n + nn, omega, a, s, m, A)
 
+@njit(cache=True)
 def da_da_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return da_da(n + nn, omega, a, s, m, A)
 
+@njit(cache=True)
 def da_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return da_domega(n + nn, omega, a, s, m, A)
 
+@njit(cache=True)
 def da_dA_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return da_dA(n + nn, omega, a, s, m, A)
 
+@njit(cache=True)
 def db_da_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return db_da(n + nn, omega, a, s, m, A)
 
+@njit(cache=True)
 def db_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return db_domega(n + nn, omega, a, s, m, A)
 
+@njit(cache=True)
 def db_dA_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return db_dA(n + nn, omega, a, s, m, A)
 
+@njit(cache=True)
 def da_nn_inv_prt_1_vector(n, omega, a, s, m, A, nn):
     return np.array([da_da_nn_inv_prt_1(n, omega, a, s, m, A, nn),\
                     da_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn),\
                     da_dA_nn_inv_prt_1(n, omega, a, s, m, A, nn)])
 
+@njit(cache=True)
 def db_nn_inv_prt_1_vector(n, omega, a, s, m, A, nn):
     return np.array([db_da_nn_inv_prt_1(n, omega, a, s, m, A, nn),\
                     db_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn),\
@@ -637,62 +665,69 @@ def db_nn_inv_prt_1_vector(n, omega, a, s, m, A, nn):
 ###################################################################################
 ###################################################################################
 ###################################################################################
+@njit(cache=True)
 def indexed_a_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     if n > nn:
         return 0.
     else:
         return indexed_a(nn - n + 1, omega, a, s, m, A)
 
+@njit(cache=True)
 def indexed_b_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     if n == 0:
         return 0.
     else:
         return indexed_b(nn - n, omega, a, s, m, A)
 
+@njit(cache=True)
 def da_da_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     if n > nn:
         return 0.
     else:
         return da_da(nn - n + 1, omega, a, s, m, A)
 
+@njit(cache=True)
 def da_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     if n > nn:
         return 0.
     else:
         return da_domega(nn - n + 1, omega, a, s, m, A)
 
+@njit(cache=True)
 def da_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     if n > nn:
         return 0.
     else:
         return da_dA(nn - n + 1, omega, a, s, m, A)
 
-
+@njit(cache=True)
 def db_da_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     if n == 0:
         return 0.
     else:
         return db_da(nn - n, omega, a, s, m, A)
 
-
+@njit(cache=True)
 def db_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     if n == 0:
         return 0.
     else:
         return db_domega(nn - n, omega, a, s, m, A)
 
-
+@njit(cache=True)
 def db_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     if n == 0:
         return 0.
     else:
         return db_dA(nn - n, omega, a, s, m, A)
 
+@njit(cache=True)
 def da_nn_inv_prt_2_vector(n, omega, a, s, m, A, nn):
     return np.array([da_da_nn_inv_prt_2(n, omega, a, s, m, A, nn),\
                     da_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn),\
                     da_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn)])
 
+@njit(cache=True)
 def db_nn_inv_prt_2_vector(n, omega, a, s, m, A, nn):
     return np.array([db_da_nn_inv_prt_2(n, omega, a, s, m, A, nn),\
                     db_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn),\
