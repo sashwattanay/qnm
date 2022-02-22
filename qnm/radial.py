@@ -8,6 +8,7 @@ import numpy as np
 
 from .contfrac import lentz
 
+
 # TODO some documentation here, better documentation throughout
 
 @njit(cache=True)
@@ -49,17 +50,18 @@ def sing_pt_char_exps(omega, a, s, m):
 
     """
 
-    root = np.sqrt(1. - a*a)
+    root = np.sqrt(1. - a * a)
     r_p, r_m = 1. + root, 1. - root
 
-    sigma_p = (2.*omega*r_p - m*a)/(2.*root)
-    sigma_m = (2.*omega*r_m - m*a)/(2.*root)
+    sigma_p = (2. * omega * r_p - m * a) / (2. * root)
+    sigma_m = (2. * omega * r_m - m * a) / (2. * root)
 
-    zeta = +1.j * omega        # This is the choice \zeta_+
-    xi   = - s - 1.j * sigma_p # This is the choice \xi_-
-    eta  = -1.j * sigma_m      # This is the choice \eta_+
+    zeta = +1.j * omega  # This is the choice \zeta_+
+    xi = - s - 1.j * sigma_p  # This is the choice \xi_-
+    eta = -1.j * sigma_m  # This is the choice \eta_+
 
     return zeta, xi, eta
+
 
 @njit(cache=True)
 def D_coeffs(omega, a, s, m, A):
@@ -100,25 +102,26 @@ def D_coeffs(omega, a, s, m, A):
 
     zeta, xi, eta = sing_pt_char_exps(omega, a, s, m)
 
-    root  = np.sqrt(1. - a*a)
+    root = np.sqrt(1. - a * a)
 
-    p     = root * zeta
-    alpha = 1. + s + xi + eta - 2.*zeta + s # Because we took the root \zeta_+
-    gamma = 1. + s + 2.*eta
-    delta = 1. + s + 2.*xi
-    sigma = (A + a*a*omega*omega - 8.*omega*omega
-             + p * (2.*alpha + gamma - delta)
-             + (1. + s - 0.5*(gamma + delta))
-             * (s + 0.5*(gamma + delta)))
+    p = root * zeta
+    alpha = 1. + s + xi + eta - 2. * zeta + s  # Because we took the root \zeta_+
+    gamma = 1. + s + 2. * eta
+    delta = 1. + s + 2. * xi
+    sigma = (A + a * a * omega * omega - 8. * omega * omega
+             + p * (2. * alpha + gamma - delta)
+             + (1. + s - 0.5 * (gamma + delta))
+             * (s + 0.5 * (gamma + delta)))
 
     D = [0.j] * 5
     D[0] = delta
-    D[1] = 4.*p - 2.*alpha + gamma - delta - 2.
-    D[2] = 2.*alpha - gamma + 2.
-    D[3] = alpha*(4.*p - delta) - sigma
-    D[4] = alpha*(alpha - gamma + 1.)
+    D[1] = 4. * p - 2. * alpha + gamma - delta - 2.
+    D[2] = 2. * alpha - gamma + 2.
+    D[3] = alpha * (4. * p - delta) - sigma
+    D[4] = alpha * (alpha - gamma + 1.)
 
     return D
+
 
 def leaver_cf_trunc_inversion(omega, a, s, m, A,
                               n_inv, N=300, r_N=1.):
@@ -174,25 +177,26 @@ def leaver_cf_trunc_inversion(omega, a, s, m, A,
 
     """
 
-    n = np.arange(0, N+1)
+    n = np.arange(0, N + 1)
 
     D = D_coeffs(omega, a, s, m, A)
 
-    alpha =     n*n + (D[0] + 1.)*n + D[0]
-    beta  = -2.*n*n + (D[1] + 2.)*n + D[3]
-    gamma =     n*n + (D[2] - 3.)*n + D[4] - D[2] + 2.
+    alpha = n * n + (D[0] + 1.) * n + D[0]
+    beta = -2. * n * n + (D[1] + 2.) * n + D[3]
+    gamma = n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.
 
     conv1 = 0.
-    for i in range(0, n_inv): # n_inv is not included
+    for i in range(0, n_inv):  # n_inv is not included
         conv1 = alpha[i] / (beta[i] - gamma[i] * conv1)
 
-    conv2 = -r_N # Is this sign correct?
-    for i in range(N, n_inv, -1): # n_inv is not included
+    conv2 = -r_N  # Is this sign correct?
+    for i in range(N, n_inv, -1):  # n_inv is not included
         conv2 = gamma[i] / (beta[i] - alpha[i] * conv2)
 
     return (beta[n_inv]
             - gamma[n_inv] * conv1
             - alpha[n_inv] * conv2)
+
 
 # TODO possible choices for r_N: 0., 1., approximation using (34)-(38)
 
@@ -207,15 +211,17 @@ def leaver_cf_trunc_inversion(omega, a, s, m, A,
 @njit(cache=True)
 def rad_a(i, n_inv, D):
     n = i + n_inv - 1
-    return -(n*n + (D[0] + 1.)*n + D[0])/(n*n + (D[2] - 3.)*n + D[4] - D[2] + 2.)
+    return -(n * n + (D[0] + 1.) * n + D[0]) / (n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.)
+
 
 @njit(cache=True)
 def rad_b(i, n_inv, D):
-    if (i==0): return 0
+    if (i == 0): return 0
     n = i + n_inv
-    return (-2.*n*n + (D[1] + 2.)*n + D[3])/(n*n + (D[2] - 3.)*n + D[4] - D[2] + 2.)
+    return (-2. * n * n + (D[1] + 2.) * n + D[3]) / (n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.)
 
-#Note that we do not jit the following function, since lentz is not jitted.
+
+# Note that we do not jit the following function, since lentz is not jitted.
 
 def leaver_cf_inv_lentz_old(omega, a, s, m, A, n_inv,
                             tol=1.e-10, N_min=0, N_max=np.Inf):
@@ -244,13 +250,13 @@ def leaver_cf_inv_lentz_old(omega, a, s, m, A, n_inv,
     D = D_coeffs(omega, a, s, m, A)
 
     # This is only use for the terminating fraction
-    n = np.arange(0, n_inv+1)
-    alpha =     n*n + (D[0] + 1.)*n + D[0]
-    beta  = -2.*n*n + (D[1] + 2.)*n + D[3]
-    gamma =     n*n + (D[2] - 3.)*n + D[4] - D[2] + 2.
+    n = np.arange(0, n_inv + 1)
+    alpha = n * n + (D[0] + 1.) * n + D[0]
+    beta = -2. * n * n + (D[1] + 2.) * n + D[3]
+    gamma = n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.
 
     conv1 = 0.
-    for i in range(0, n_inv): # n_inv is not included
+    for i in range(0, n_inv):  # n_inv is not included
         conv1 = alpha[i] / (beta[i] - gamma[i] * conv1)
 
     conv2, cf_err, n_frac = lentz(rad_a, rad_b,
@@ -330,13 +336,13 @@ def leaver_cf_inv_lentz(omega, a, s, m, A, n_inv,
     D = D_coeffs(omega, a, s, m, A)
 
     # This is only use for the terminating fraction
-    n = np.arange(0, n_inv+1)
-    alpha =     n*n + (D[0] + 1.)*n + D[0]
-    beta  = -2.*n*n + (D[1] + 2.)*n + D[3]
-    gamma =     n*n + (D[2] - 3.)*n + D[4] - D[2] + 2.
+    n = np.arange(0, n_inv + 1)
+    alpha = n * n + (D[0] + 1.) * n + D[0]
+    beta = -2. * n * n + (D[1] + 2.) * n + D[3]
+    gamma = n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.
 
     conv1 = 0.
-    for i in range(0, n_inv): # n_inv is not included
+    for i in range(0, n_inv):  # n_inv is not included
         conv1 = alpha[i] / (beta[i] - gamma[i] * conv1)
 
     ##############################
@@ -368,9 +374,9 @@ def leaver_cf_inv_lentz(omega, a, s, m, A, n_inv,
         # terms, a(n) and b(n), tend to 1 as n goes to infinity. Further,
         # We can analytically divide through by n in the numerator and
         # denominator to make the numbers closer to 1.
-        an = -(n*n + (D[0] + 1.)*n + D[0])/(n*n + (D[2] - 3.)*n + D[4] - D[2] + 2.)
+        an = -(n * n + (D[0] + 1.) * n + D[0]) / (n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.)
         n = n + 1
-        bn = (-2.*n*n + (D[1] + 2.)*n + D[3])/(n*n + (D[2] - 3.)*n + D[4] - D[2] + 2.)
+        bn = (-2. * n * n + (D[1] + 2.) * n + D[3]) / (n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.)
 
         D_new = bn + an * D_old
 
@@ -382,11 +388,11 @@ def leaver_cf_inv_lentz(omega, a, s, m, A, n_inv,
         if (C_new == 0):
             C_new = tiny
 
-        D_new = 1./D_new
+        D_new = 1. / D_new
         Delta = C_new * D_new
         f_new = f_old * Delta
 
-        if ((j > N_min) and (np.abs(Delta - 1.) < tol)): # converged
+        if ((j > N_min) and (np.abs(Delta - 1.) < tol)):  # converged
             conv = True
 
         # Set up for next iter
@@ -401,66 +407,37 @@ def leaver_cf_inv_lentz(omega, a, s, m, A, n_inv,
 
     return (beta[n_inv]
             - gamma[n_inv] * conv1
-            + gamma[n_inv] * conv2), np.abs(Delta-1.), j-1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            + gamma[n_inv] * conv2), np.abs(Delta - 1.), j - 1
 
 
 @njit(cache=True)
 def indexed_alpha(omega, a, s, m, A, n):
-
     D = D_coeffs(omega, a, s, m, A)
 
-    return n*n + (D[0] + 1.)*n + D[0]
+    return n * n + (D[0] + 1.) * n + D[0]
+
 
 @njit(cache=True)
 def indexed_beta(omega, a, s, m, A, n):
-
     D = D_coeffs(omega, a, s, m, A)
 
-    return -2.*n*n + (D[1] + 2.)*n + D[3]
+    return -2. * n * n + (D[1] + 2.) * n + D[3]
+
 
 @njit(cache=True)
 def indexed_gamma(omega, a, s, m, A, n):
-
     D = D_coeffs(omega, a, s, m, A)
 
-    return n*n + (D[2] - 3.)*n + D[4] - D[2] + 2.
+    return n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.
+
 
 @njit(cache=True)
 def indexed_a(n, omega, a, s, m, A):
+    return -indexed_alpha(omega, a, s, m, A, n - 1) * indexed_gamma(omega, a, s, m, A, n)
 
-    return -indexed_alpha(omega, a, s, m, A, n-1)*indexed_gamma(omega, a, s, m, A, n)
 
 @njit(cache=True)
 def indexed_b(n, omega, a, s, m, A):
-
     return indexed_beta(omega, a, s, m, A, n)
 
 
@@ -468,149 +445,159 @@ def indexed_b(n, omega, a, s, m, A):
 ################################################################
 @njit(cache=True)
 def dD_da(omega, a, s, m, A):
-
     M = 1.
     dD_array = [0.j] * 5
-    i = complex(0,1.)
-    a2 = a*a
-    M2 = M*M
+    i = complex(0, 1.)
+    a2 = a * a
+    M2 = M * M
 
     v1 = M2 - a2
-    v1_sqrt = np.power(v1, 1./2.)
-    v2 = (a-M)*(a+M)
-    v1_radical = np.power(v1, 3./2.)
+    v1_sqrt = np.power(v1, 1. / 2.)
+    v2 = (a - M) * (a + M)
+    v1_radical = np.power(v1, 3. / 2.)
 
+    dD_array[0] = i * M2 * (m - 2. * a * omega) / (v1_radical)
+    dD_array[1] = - 2 * i * (m * M2 - 2. * a2 * a * omega) / v1_radical
+    dD_array[2] = dD_array[0]
 
+    dD_array[3] = (-i * m * M2 + 2. * (i * a2 * a - 2. * m * M2 * M + m * v2 * v1_sqrt) * omega + \
+                   2. * a * (4. * a2 * M + v2 * v1_sqrt) * omega * omega) / v1_radical
 
-    dD_array[0] =  i*M2*(m - 2.*a*omega)/(v1_radical)
-    dD_array[1] = - 2*i*(m*M2 - 2.*a2*a*omega )/v1_radical
-    dD_array[2] =  dD_array[0]
-
-
-    dD_array[3] = (-i*m*M2 + 2.*(i*a2*a - 2.*m*M2*M + m*v2*v1_sqrt )*omega + \
-        2.*a*(4.*a2*M + v2*v1_sqrt)*omega*omega)/v1_radical
-
-
-    dD_array[4] =  M2*(m-2.*a*omega)*(i+4.*M*omega)/v1_radical
-
+    dD_array[4] = M2 * (m - 2. * a * omega) * (i + 4. * M * omega) / v1_radical
 
     return dD_array
+
 
 @njit(cache=True)
 def dD_domega(omega, a, s, m, A):
-
     M = 1.
 
     dD_array = [0.j] * 5
-    i = complex(0,1.)
-    a2 = a*a
-    M2 = M*M
+    i = complex(0, 1.)
+    a2 = a * a
+    M2 = M * M
 
     v1 = M2 - a2
-    v1_radical = np.power(v1, 3./2.)
-    v1_sqrt = np.power(v1, 1./2.)
+    v1_radical = np.power(v1, 3. / 2.)
+    v1_sqrt = np.power(v1, 1. / 2.)
     v2 = v1_sqrt + M
 
+    dD_array[0] = -2. * i * M * v2 / v1_sqrt
+    dD_array[1] = 4. * i * v2 * v2 / v1_sqrt
+    dD_array[2] = - (2. * i * M * (M + 3. * (-M + v2))) / v1_sqrt
 
+    dD_array[3] = - 2. * (a * m * (M + v2) - 2. * M * v2 * (i + 8. * M * omega) + \
+                          a2 * (i + 7. * M * omega + v2 * omega)) / v1_sqrt
 
-    dD_array[0] =  -2.*i*M*v2/v1_sqrt
-    dD_array[1] =   4.*i*v2*v2/v1_sqrt
-    dD_array[2] =  - (2.*i*M*(M + 3.*(-M + v2)))/v1_sqrt
-
-    dD_array[3] = - 2.*(a*m*(M+v2) - 2.*M*v2*(i+8.*M*omega) + \
-        a2*(i + 7.*M*omega + v2*omega))/v1_sqrt
-
-    dD_array[4] = -2.*M*(-2.*a*m + i*(3.+2.*s)*v1_sqrt + 8.*M2*omega + M*(i + 8.*v1_sqrt*omega))/v1_sqrt
+    dD_array[4] = -2. * M * (
+                -2. * a * m + i * (3. + 2. * s) * v1_sqrt + 8. * M2 * omega + M * (i + 8. * v1_sqrt * omega)) / v1_sqrt
 
     return dD_array
+
 
 @njit(cache=True)
 def dD_dA(omega, a, s, m, A):
-
     dD_array = [0.j] * 5
 
-    dD_array[0] =  0.
-    dD_array[1] =  0.
-    dD_array[2] =  0.
-    dD_array[3] =  -1.
-    dD_array[4] =  0.
+    dD_array[0] = 0.
+    dD_array[1] = 0.
+    dD_array[2] = 0.
+    dD_array[3] = -1.
+    dD_array[4] = 0.
 
     return dD_array
 
+
 @njit(cache=True)
 def dalpha_da(omega, a, s, m, A, n):
-    return dD_da(omega, a, s, m, A)[0]*(n+1.)
+    return dD_da(omega, a, s, m, A)[0] * (n + 1.)
+
 
 @njit(cache=True)
 def dalpha_domega(omega, a, s, m, A, n):
-    return dD_domega(omega, a, s, m, A)[0]*(n+1.)
+    return dD_domega(omega, a, s, m, A)[0] * (n + 1.)
+
 
 @njit(cache=True)
 def dalpha_dA(omega, a, s, m, A, n):
-    return dD_dA(omega, a, s, m, A)[0]*(n+1.)
+    return dD_dA(omega, a, s, m, A)[0] * (n + 1.)
+
 
 @njit(cache=True)
 def dbeta_da(omega, a, s, m, A, n):
-    return dD_da(omega, a, s, m, A)[1]*n + dD_da(omega, a, s, m, A)[3]
+    return dD_da(omega, a, s, m, A)[1] * n + dD_da(omega, a, s, m, A)[3]
+
 
 @njit(cache=True)
 def dbeta_domega(omega, a, s, m, A, n):
-    return dD_domega(omega, a, s, m, A)[1]*n + dD_domega(omega, a, s, m, A)[3]
+    return dD_domega(omega, a, s, m, A)[1] * n + dD_domega(omega, a, s, m, A)[3]
+
 
 @njit(cache=True)
 def dbeta_dA(omega, a, s, m, A, n):
-    return dD_dA(omega, a, s, m, A)[1]*n + dD_dA(omega, a, s, m, A)[3]
+    return dD_dA(omega, a, s, m, A)[1] * n + dD_dA(omega, a, s, m, A)[3]
+
 
 @njit(cache=True)
 def dgamma_da(omega, a, s, m, A, n):
-    return dD_da(omega, a, s, m, A)[2]*(n-1) + dD_da(omega, a, s, m, A)[4]
+    return dD_da(omega, a, s, m, A)[2] * (n - 1) + dD_da(omega, a, s, m, A)[4]
+
 
 @njit(cache=True)
 def dgamma_domega(omega, a, s, m, A, n):
-    return dD_domega(omega, a, s, m, A)[2]*(n-1) + dD_domega(omega, a, s, m, A)[4]
+    return dD_domega(omega, a, s, m, A)[2] * (n - 1) + dD_domega(omega, a, s, m, A)[4]
+
 
 @njit(cache=True)
 def dgamma_dA(omega, a, s, m, A, n):
-    return dD_dA(omega, a, s, m, A)[2]*(n-1) + dD_dA(omega, a, s, m, A)[4]
+    return dD_dA(omega, a, s, m, A)[2] * (n - 1) + dD_dA(omega, a, s, m, A)[4]
+
 
 @njit(cache=True)
 def da_da(n, omega, a, s, m, A):
-    return -(indexed_gamma(omega, a, s, m, A, n)*dalpha_da(omega, a, s, m, A, n-1) \
-        + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_da(omega, a, s, m, A, n) )
+    return -(indexed_gamma(omega, a, s, m, A, n) * dalpha_da(omega, a, s, m, A, n - 1) \
+             + indexed_alpha(omega, a, s, m, A, n - 1) * dgamma_da(omega, a, s, m, A, n))
+
 
 @njit(cache=True)
 def da_domega(n, omega, a, s, m, A):
-    return -(indexed_gamma(omega, a, s, m, A, n)*dalpha_domega(omega, a, s, m, A, n-1) \
-        + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_domega(omega, a, s, m, A, n))
+    return -(indexed_gamma(omega, a, s, m, A, n) * dalpha_domega(omega, a, s, m, A, n - 1) \
+             + indexed_alpha(omega, a, s, m, A, n - 1) * dgamma_domega(omega, a, s, m, A, n))
+
 
 @njit(cache=True)
 def da_dA(n, omega, a, s, m, A):
-    return -(indexed_gamma(omega, a, s, m, A, n)*dalpha_dA(omega, a, s, m, A, n-1) \
-        + indexed_alpha(omega, a, s, m, A, n-1)*dgamma_dA(omega, a, s, m, A, n))
+    return -(indexed_gamma(omega, a, s, m, A, n) * dalpha_dA(omega, a, s, m, A, n - 1) \
+             + indexed_alpha(omega, a, s, m, A, n - 1) * dgamma_dA(omega, a, s, m, A, n))
+
 
 @njit(cache=True)
 def db_da(n, omega, a, s, m, A):
     return dbeta_da(omega, a, s, m, A, n)
 
+
 @njit(cache=True)
 def db_domega(n, omega, a, s, m, A):
     return dbeta_domega(omega, a, s, m, A, n)
+
 
 @njit(cache=True)
 def db_dA(n, omega, a, s, m, A):
     return dbeta_dA(omega, a, s, m, A, n)
 
+
 @njit(cache=True)
 def da_vector(n, omega, a, s, m, A):
-    return np.array([da_da(n, omega, a, s, m, A),\
-                    da_domega(n, omega, a, s, m, A),\
-                    da_dA(n, omega, a, s, m, A)])
+    return np.array([da_da(n, omega, a, s, m, A), \
+                     da_domega(n, omega, a, s, m, A), \
+                     da_dA(n, omega, a, s, m, A)])
+
 
 @njit(cache=True)
 def db_vector(n, omega, a, s, m, A):
-    return np.array([db_da(n, omega, a, s, m, A),\
-                    db_domega(n, omega, a, s, m, A),\
-                    db_dA(n, omega, a, s, m, A)])
+    return np.array([db_da(n, omega, a, s, m, A), \
+                     db_domega(n, omega, a, s, m, A), \
+                     db_dA(n, omega, a, s, m, A)])
 
 
 ###################################################################################
@@ -622,45 +609,55 @@ def db_vector(n, omega, a, s, m, A):
 def indexed_a_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return indexed_a(n + nn, omega, a, s, m, A)
 
+
 @njit(cache=True)
 def indexed_b_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return indexed_b(n + nn, omega, a, s, m, A)
+
 
 @njit(cache=True)
 def da_da_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return da_da(n + nn, omega, a, s, m, A)
 
+
 @njit(cache=True)
 def da_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return da_domega(n + nn, omega, a, s, m, A)
+
 
 @njit(cache=True)
 def da_dA_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return da_dA(n + nn, omega, a, s, m, A)
 
+
 @njit(cache=True)
 def db_da_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return db_da(n + nn, omega, a, s, m, A)
+
 
 @njit(cache=True)
 def db_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return db_domega(n + nn, omega, a, s, m, A)
 
+
 @njit(cache=True)
 def db_dA_nn_inv_prt_1(n, omega, a, s, m, A, nn):
     return db_dA(n + nn, omega, a, s, m, A)
 
+
 @njit(cache=True)
 def da_nn_inv_prt_1_vector(n, omega, a, s, m, A, nn):
-    return np.array([da_da_nn_inv_prt_1(n, omega, a, s, m, A, nn),\
-                    da_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn),\
-                    da_dA_nn_inv_prt_1(n, omega, a, s, m, A, nn)])
+    return np.array([da_da_nn_inv_prt_1(n, omega, a, s, m, A, nn), \
+                     da_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn), \
+                     da_dA_nn_inv_prt_1(n, omega, a, s, m, A, nn)])
+
 
 @njit(cache=True)
 def db_nn_inv_prt_1_vector(n, omega, a, s, m, A, nn):
-    return np.array([db_da_nn_inv_prt_1(n, omega, a, s, m, A, nn),\
-                    db_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn),\
-                    db_dA_nn_inv_prt_1(n, omega, a, s, m, A, nn)])
+    return np.array([db_da_nn_inv_prt_1(n, omega, a, s, m, A, nn), \
+                     db_domega_nn_inv_prt_1(n, omega, a, s, m, A, nn), \
+                     db_dA_nn_inv_prt_1(n, omega, a, s, m, A, nn)])
+
 
 ###################################################################################
 ###################################################################################
@@ -672,12 +669,14 @@ def indexed_a_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     else:
         return indexed_a(nn - n + 1, omega, a, s, m, A)
 
+
 @njit(cache=True)
 def indexed_b_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     if n == 0:
         return 0.
     else:
         return indexed_b(nn - n, omega, a, s, m, A)
+
 
 @njit(cache=True)
 def da_da_nn_inv_prt_2(n, omega, a, s, m, A, nn):
@@ -686,12 +685,14 @@ def da_da_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     else:
         return da_da(nn - n + 1, omega, a, s, m, A)
 
+
 @njit(cache=True)
 def da_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     if n > nn:
         return 0.
     else:
         return da_domega(nn - n + 1, omega, a, s, m, A)
+
 
 @njit(cache=True)
 def da_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn):
@@ -700,12 +701,14 @@ def da_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     else:
         return da_dA(nn - n + 1, omega, a, s, m, A)
 
+
 @njit(cache=True)
 def db_da_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     if n == 0:
         return 0.
     else:
         return db_da(nn - n, omega, a, s, m, A)
+
 
 @njit(cache=True)
 def db_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn):
@@ -714,6 +717,7 @@ def db_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     else:
         return db_domega(nn - n, omega, a, s, m, A)
 
+
 @njit(cache=True)
 def db_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     if n == 0:
@@ -721,30 +725,26 @@ def db_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn):
     else:
         return db_dA(nn - n, omega, a, s, m, A)
 
+
 @njit(cache=True)
 def da_nn_inv_prt_2_vector(n, omega, a, s, m, A, nn):
-    return np.array([da_da_nn_inv_prt_2(n, omega, a, s, m, A, nn),\
-                    da_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn),\
-                    da_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn)])
+    return np.array([da_da_nn_inv_prt_2(n, omega, a, s, m, A, nn), \
+                     da_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn), \
+                     da_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn)])
+
 
 @njit(cache=True)
 def db_nn_inv_prt_2_vector(n, omega, a, s, m, A, nn):
-    return np.array([db_da_nn_inv_prt_2(n, omega, a, s, m, A, nn),\
-                    db_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn),\
-                    db_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn)])
-
-
-
-
-
-
+    return np.array([db_da_nn_inv_prt_2(n, omega, a, s, m, A, nn), \
+                     db_domega_nn_inv_prt_2(n, omega, a, s, m, A, nn), \
+                     db_dA_nn_inv_prt_2(n, omega, a, s, m, A, nn)])
 
 
 ###################################################################################
 ###################################################################################
 ###################################################################################
 
-
+@njit(cache=True)
 def lentz_with_grad(a, b, da, db,
                     args=(),
                     tol=1.e-10,
@@ -802,8 +802,8 @@ def lentz_with_grad(a, b, da, db,
 
     """
 
-    if not isinstance(args, tuple):
-        args = (args,)
+    # if not isinstance(args, tuple):
+    #    args = (args,)
 
     f_old = b(0, *args)
 
@@ -816,7 +816,7 @@ def lentz_with_grad(a, b, da, db,
     # f_0 = b_0, so df_0 = db_0
     df_old = db(0, *args)
     dC_old = df_old
-    dD_old = 0.
+    dD_old = np.array([0. + 0.j, 0. + 0.j, 0. + 0.j])  # 0.
 
     conv = False
 
@@ -832,7 +832,7 @@ def lentz_with_grad(a, b, da, db,
 
         if (D_new == 0):
             D_new = tiny
-        D_new = 1./D_new
+        D_new = 1. / D_new
 
         C_new = bj + aj / C_old
 
@@ -845,34 +845,35 @@ def lentz_with_grad(a, b, da, db,
         # Second: the derivative calculations
         # The only possibly dangerous denominator is C_old,
         # but it can't be 0 (at worst it's "tiny")
-        dC_new = dbj + (daj*C_old - aj*dC_old)/(C_old*C_old)
-        dD_new = -D_new*D_new*(dbj + daj*D_old + aj*dD_old)
-        df_new = df_old*Delta + f_old*dC_new*D_new + f_old*C_new*dD_new
+        dC_new = dbj + (daj * C_old - aj * dC_old) / (C_old * C_old)
+        dD_new = -D_new * D_new * (dbj + daj * D_old + aj * dD_old)
+        df_new = df_old * Delta + f_old * dC_new * D_new + f_old * C_new * dD_new
 
         # Did we converge?
         if ((j > N_min) and (np.abs(Delta - 1.) < tol)):
             conv = True
 
         # Set up for next iter
-        j      = j + 1
-        C_old  = C_new
-        D_old  = D_new
-        f_old  = f_new
+        j = j + 1
+        C_old = C_new
+        D_old = D_new
+        f_old = f_new
         dC_old = dC_new
         dD_old = dD_new
         df_old = df_new
 
     # Success or failure can be assessed by the user
-    return f_new, df_new, np.abs(Delta - 1.), j-1
+    return f_new, df_new, np.abs(Delta - 1.), j - 1
 
 
 
 
+@njit(cache=True)
 def lentz_with_grad_v2(a, b, da, db,
-                    args=(),
-                    tol=1.e-10,
-                    N_min=0, N_max=np.Inf,
-                    tiny=1.e-30):
+                       args=(),
+                       tol=1.e-10,
+                       N_min=0, N_max=np.Inf,
+                       tiny=1.e-30):
     """Compute a continued fraction (and its derivative) via modified
     Lentz's method.
 
@@ -925,8 +926,8 @@ def lentz_with_grad_v2(a, b, da, db,
 
     """
 
-    if not isinstance(args, tuple):
-        args = (args,)
+    # if not isinstance(args, tuple):
+    #    args = (args,)
 
     f_old = b(0, *args)
 
@@ -939,13 +940,13 @@ def lentz_with_grad_v2(a, b, da, db,
     # f_0 = b_0, so df_0 = db_0
     df_old = db(0, *args)
     dC_old = df_old
-    dD_old = 0.
+    dD_old = np.array([0. + 0.j, 0. + 0.j, 0. + 0.j])  # 0.
 
     conv = False
 
     j = 1
 
-    while ((j < N_max )):    # the argument N_max should be overtoneIndex + 1
+    while ((j < N_max)):  # the argument N_max should be overtoneIndex + 1
 
         aj, bj = a(j, *args), b(j, *args)
         daj, dbj = da(j, *args), db(j, *args)
@@ -955,7 +956,7 @@ def lentz_with_grad_v2(a, b, da, db,
 
         if (D_new == 0):
             D_new = tiny
-        D_new = 1./D_new
+        D_new = 1. / D_new
 
         C_new = bj + aj / C_old
 
@@ -968,34 +969,24 @@ def lentz_with_grad_v2(a, b, da, db,
         # Second: the derivative calculations
         # The only possibly dangerous denominator is C_old,
         # but it can't be 0 (at worst it's "tiny")
-        dC_new = dbj + (daj*C_old - aj*dC_old)/(C_old*C_old)
-        dD_new = -D_new*D_new*(dbj + daj*D_old + aj*dD_old)
-        df_new = df_old*Delta + f_old*dC_new*D_new + f_old*C_new*dD_new
+        dC_new = dbj + (daj * C_old - aj * dC_old) / (C_old * C_old)
+        dD_new = -D_new * D_new * (dbj + daj * D_old + aj * dD_old)
+        df_new = df_old * Delta + f_old * dC_new * D_new + f_old * C_new * dD_new
 
         # Did we converge?
         if ((j > N_min) and (np.abs(Delta - 1.) < tol)):
             conv = True
 
         # Set up for next iter
-        j      = j + 1
-        C_old  = C_new
-        D_old  = D_new
-        f_old  = f_new
+        j = j + 1
+        C_old = C_new
+        D_old = D_new
+        f_old = f_new
         dC_old = dC_new
         dD_old = dD_new
         df_old = df_new
 
     # Success or failure can be assessed by the user
-    return f_new, df_new, np.abs(Delta - 1.), j-1
-
-
-
-
-
-
-
-
-
-
+    return f_new, df_new, np.abs(Delta - 1.), j - 1
 
 ##########
