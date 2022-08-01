@@ -335,7 +335,7 @@ def leaver_cf_inv_lentz(omega, a, s, m, A, n_inv,
 
     D = D_coeffs(omega, a, s, m, A)
 
-    dD_array = [[0.j] * 5]*3
+    dD_array =    np.full((3,5) , complex(0, 0.))    #[[0]*5]*3
 
     M = 1.
     i = complex(0, 1.)
@@ -348,25 +348,24 @@ def leaver_cf_inv_lentz(omega, a, s, m, A, n_inv,
 
 
 
-    dD_array[0][0] = i * M2 * (m - 2. * a * omega) / (v1_radical)
-    dD_array[0][1] = - 2 * i * (m * M2 - 2. * a2 * a * omega) / v1_radical
-    dD_array[0][2] = dD_array[0]
-    dD_array[0][3] = (-i * m * M2 + 2. * (i * a2 * a - 2. * m * M2 * M + m * v2 * v1_sqrt) * omega + \
+    dD_array[0,0] = i * M2 * (m - 2. * a * omega) / (v1_radical)
+    dD_array[0,1] = - 2 * i * (m * M2 - 2. * a2 * a * omega) / v1_radical
+    dD_array[0,2] = dD_array[0,0]
+    dD_array[0,3] = (-i * m * M2 + 2. * (i * a2 * a - 2. * m * M2 * M + m * v2 * v1_sqrt) * omega + \
                    2. * a * (4. * a2 * M + v2 * v1_sqrt) * omega * omega) / v1_radical
-    dD_array[0][4] = M2 * (m - 2. * a * omega) * (i + 4. * M * omega) / v1_radical
-    dD_array[1][0] = -2. * i * M * v2 / v1_sqrt
-    dD_array[1][1] = 4. * i * v2 * v2 / v1_sqrt
-    dD_array[1][2] = - (2. * i * M * (M + 3. * (-M + v2))) / v1_sqrt
-    dD_array[1][3] = - 2. * (a * m * (M + v2) - 2. * M * v2 * (i + 8. * M * omega) + \
+    dD_array[0,4] = M2 * (m - 2. * a * omega) * (i + 4. * M * omega) / v1_radical
+    dD_array[1,0] = -2. * i * M * v2 / v1_sqrt
+    dD_array[1,1] = 4. * i * v2 * v2 / v1_sqrt
+    dD_array[1,2] = - (2. * i * M * (M + 3. * (-M + v2))) / v1_sqrt
+    dD_array[1,3] = - 2. * (a * m * (M + v2) - 2. * M * v2 * (i + 8. * M * omega) + \
                           a2 * (i + 7. * M * omega + v2 * omega)) / v1_sqrt
-    dD_array[1][4] = -2. * M * (
+    dD_array[1,4] = -2. * M * (
                 -2. * a * m + i * (3. + 2. * s) * v1_sqrt + 8. * M2 * omega + M * (i + 8. * v1_sqrt * omega)) / v1_sqrt
-    dD_array[2][0] = 0.
-    dD_array[2][1] = 0.
-    dD_array[2][2] = 0.
-    dD_array[2][3] = -1.
-    dD_array[2][4] = 0.
-
+    dD_array[2,0] = 0.
+    dD_array[2,1] = 0.
+    dD_array[2,2] = 0.
+    dD_array[2,3] = -1.
+    dD_array[2,4] = 0.
 
 
     # This is only use for the terminating fraction
@@ -376,25 +375,25 @@ def leaver_cf_inv_lentz(omega, a, s, m, A, n_inv,
     gamma = n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.
 
 
-    dalpha = [[0.j] * (n_inv + 1)]*3
-    dbeta  = [[0.j] * (n_inv + 1)]*3
-    dgamma = [[0.j] * (n_inv + 1)]*3
+    dalpha =  np.full((3,(n_inv + 1)) , complex(0, 0.))
+    dbeta  =  np.full((3,(n_inv + 1)) , complex(0, 0.))
+    dgamma =  np.full((3,(n_inv + 1)) , complex(0, 0.))
 
     for i in range(0, n_inv + 1):
         for j in range(0, 2):
-            dalpha[i][j]  =  (dD_array[j][0] ) * i + dD_array[j][0]
-            dbeta[i][j]   =  (dD_array[j][1] ) * i + dD_array[j][3]
-            dgamma[i][j]  =  (dD_array[j][2] ) * i + dD_array[j][4] - dD_array[j][2]
+            dalpha[j,i]  =  (dD_array[j,0] ) * i + dD_array[j,0]
+            dbeta[j,i]   =  (dD_array[j,1] ) * i + dD_array[j,3]
+            dgamma[j,i]  =  (dD_array[j,2] ) * i + dD_array[j,4] - dD_array[j,2]
 
     conv1 = 0.
-    dconv1 = [0.j] * 3
+    dconv1 = np.full((3) , complex(0, 0.))
     for i in range(0, n_inv):  # n_inv is not included
         conv1 = alpha[i] / (beta[i] - gamma[i] * conv1)
 
         for j in range(0, 2):
-            dconv1[j] =   ((beta[i] - conv1 * gamma[i])* dalpha[j][i] -  \
-                    alpha[i] (dbeta[j][i] - gamma[i] dconv1[j] -   \
-                    conv1 * dgamma[j][i]))/pow((beta[i] - conv1* gamma[i]),2)
+            dconv1[j] =   ((beta[i] - conv1 * gamma[i])* dalpha[j,i] -  \
+                            alpha[i] * (dbeta[j,i] - gamma[i] * dconv1[j] -   \
+                            conv1 * dgamma[j,i]))/pow((beta[i] - conv1* gamma[i]),2)
 
     ##############################
     # Beginning of Lentz's method, inlined
@@ -417,11 +416,11 @@ def leaver_cf_inv_lentz(omega, a, s, m, A, n_inv,
     j = 1
     n = n_inv
 
-    dan = [0.j] * 3
-    dbn = [0.j] * 3
-    df_old = [0.j] * 3
+    dan = np.full((3) , complex(0, 0.))
+    dbn = np.full((3) , complex(0, 0.))
+    df_old = np.full((3) , complex(0, 0.))
     dC_old = df_old
-    dD_old = [0.j] * 3
+    dD_old = np.full((3) , complex(0, 0.))
 
     while ((not conv) and (j < N_max)):
 
@@ -433,17 +432,17 @@ def leaver_cf_inv_lentz(omega, a, s, m, A, n_inv,
         # denominator to make the numbers closer to 1.
         an = -(n * n + (D[0] + 1.) * n + D[0]) / (n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.)
         for j in range(0, 2):
-            dan[j]  =   (-1. (1 + n) (2. - 3. n + n*n + (-1. + n) * D[2] + D[4]) dDarray[j][0] \
-                     + (n *(1. + n) + (1 + n) * D[0]) *((-1. + n) dDarray[j][2] +  \
-                     dDarray[j][4]))/pow((2. - 3.* n + n*2 + (-1 + n)* D[2] + D[4]),2)
+            dan[j]  =   (-1.* (1 + n) * (2. - 3. * n + n*n + (-1. + n) * D[2] + D[4])* dD_array[j,0] \
+                     + (n *(1. + n) + (1 + n) * D[0]) *((-1. + n)* dD_array[j,2] +  \
+                     dD_array[j,4]))/pow((2. - 3.* n + n*2 + (-1 + n)* D[2] + D[4]),2)
 
         n = n + 1
 
         bn = (-2. * n * n + (D[1] + 2.) * n + D[3]) / (n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.)
         for j in range(0, 2):
-            dbn[j]  =  ((2. - 3. * n + n*n + (-1 + n) *D[2] + D[4])* (n* dDarray[j][1] +  \
-            dDarray[j][3]) - ((2. - 2. n) *n + n *D[1] +   \
-            D3[x])* ((-1 + n)* dDarray[j][2] + dDarray[j][4]))/pow((2. - 3.* n + n*2 + (-1 + n) * D[2] + D[4]),2)
+            dbn[j]  =  ((2. - 3. * n + n*n + (-1 + n) *D[2] + D[4])* (n* dD_array[j,1] +  \
+            dD_array[j,3]) - ((2. - 2. * n) *n + n *D[1] +   \
+            D[3])* ((-1 + n)* dD_array[j,2] + dD_array[j,4]))/pow((2. - 3.* n + n*2 + (-1 + n) * D[2] + D[4]),2)
 
 
         D_new = bn + an * D_old
@@ -464,9 +463,17 @@ def leaver_cf_inv_lentz(omega, a, s, m, A, n_inv,
             conv = True
 
 
-        dC_new = dbn + (dan * C_old - an * dC_old) / (C_old * C_old)
-        dD_new = -D_new * D_new * (dbn + dan * D_old + an * dD_old)
-        df_new = df_old * Delta + f_old * dC_new * D_new + f_old * C_new * dD_new
+        #dC_new = dbn + (    (dan * C_old) - (an * dC_old)   )/(C_old * C_old)
+
+        dC_new = dbn + (    (dan * C_old) - (an * dC_old)   )/(C_old * C_old)
+
+
+    #    dD_new =  - D_new * D_new * (dbn + dan * D_old + an * dD_old )
+
+        dD_new = dbn +  ( (dan * C_old) -  (an * dC_old) )/(C_old*C_old)
+
+        df_new = df_old * Delta + np.multiply( np.multiply(f_old , dC_new ), D_new) +  \
+                 np.multiply(np.multiply(f_old , C_new) , dD_new)
 
 
         # Set up for next iter
@@ -479,12 +486,21 @@ def leaver_cf_inv_lentz(omega, a, s, m, A, n_inv,
         df_old = df_new
 
     conv2 = f_new
+    dconv2 = df_new
+
+    dContFrac = np.array([dbeta[0,n_inv] +  gamma[n_inv] * (-dconv1[0] + dconv2[0]) \
+     + (-conv1 + conv2) * dgamma[0,n_inv],    \
+    dbeta[1,n_inv] +  gamma[n_inv] * (-dconv1[1] + dconv2[1]) \
+     + (-conv1 + conv2) * dgamma[1,n_inv],    \
+    dbeta[2,n_inv] +  gamma[n_inv] * (-dconv1[2] + dconv2[2]) \
+     + (-conv1 + conv2) * dgamma[2,n_inv]    ])
 
     ##############################
 
     return (beta[n_inv]
             - gamma[n_inv] * conv1
-            + gamma[n_inv] * conv2), np.abs(Delta - 1.), j - 1
+            + gamma[n_inv] * conv2, dContFrac, np.abs(Delta - 1.), j - 1)
+
 
 
 @njit(cache=True)
