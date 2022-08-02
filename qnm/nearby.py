@@ -226,7 +226,7 @@ class NearbyRootFinder(object):
             #######################    SUPER NEW WAY
 
             self.last_inv_err, dContFrac, self.cf_err, self.n_frac = \
-                radial.leaver_cf_inv_lentz(omega, self.a, self.s, self.m, A,
+                radial.leaver_cf_inv_lentz_grad(omega, self.a, self.s, self.m, A,
                 self.n_inv, self.cf_tol, self.Nr_min, self.Nr_max)
 
 
