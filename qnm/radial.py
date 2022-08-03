@@ -564,18 +564,19 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
         # We can analytically divide through by n in the numerator and
         # denominator to make the numbers closer to 1.
         an = -(n * n + (D[0] + 1.) * n + D[0]) / (n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.)
-        for j in range(0, 2):
-            dan[j]  =   (-1.* (1 + n) * (2. - 3. * n + n*n + (-1. + n) * D[2] + D[4])* dD_array[j,0] \
-                     + (n *(1. + n) + (1 + n) * D[0]) *((-1. + n)* dD_array[j,2] +  \
-                     dD_array[j,4]))/pow((2. - 3.* n + n*2 + (-1 + n)* D[2] + D[4]),2)
+        for jj in range(0, 2):
+            dan[jj]  = -(((1 + n)* ((2 + 3* n + n*n + (-1 + n) *D[2] + D[4])* dD_array[jj, 0] \
+                        - (n + D[0])* ((-1 + n) * dD_array[jj, 2] +   \
+                        dD_array[jj, 4])))/pow((2 + 3 * n + n*n + (-1 + n)* D[2] + D[4]), 2))
 
         n = n + 1
 
         bn = (-2. * n * n + (D[1] + 2.) * n + D[3]) / (n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.)
-        for j in range(0, 2):
-            dbn[j]  =  ((2. - 3. * n + n*n + (-1 + n) *D[2] + D[4])* (n* dD_array[j,1] +  \
-                        dD_array[j,3]) - ((2. - 2. * n) *n + n *D[1] +   \
-                        D[3])* ((-1 + n)* dD_array[j,2] + dD_array[j,4]))/pow((2. - 3.* n + n*2 + (-1 + n) * D[2] + D[4]),2)
+        for jj in range(0, 2):
+            dbn[jj]  =  ((2 - 3 * n + n*n + (-1 + n) * D[2] + D[4])* (n * dD_array[jj, 1] + \
+                        dD_array[jj, 3]) - (-2 *(-1 + n)* n + n *D[1] +  \
+                        D[3])* ((-1 + n) * dD_array[jj, 2] + dD_array[jj, 4])) \
+                        /pow((2 - 3* n + n*n + (-1 + n)* D[2] + D[4]),2)
 
 
         D_new = bn + an * D_old
@@ -592,22 +593,19 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
         Delta = C_new * D_new
         f_new = f_old * Delta
 
-        if ((j > N_min) and (np.abs(Delta - 1.) < tol)):  # converged
-            conv = True
-
 
         #dC_new = dbn + (    (dan * C_old) - (an * dC_old)   )/(C_old * C_old)
 
         dC_new = dbn + (    (dan * C_old) - (an * dC_old)   )/(C_old * C_old)
+   #    dD_new =  - D_new * D_new * (dbn + dan * D_old + an * dD_old )
+        dD_new = - D_new * D_new * (dbn + dan * D_old + an * dD_old )
+
+        df_new = df_old * Delta + (f_old * dC_new) * D_new +  \
+                (f_old * C_new) * dD_new
 
 
-    #    dD_new =  - D_new * D_new * (dbn + dan * D_old + an * dD_old )
-
-        dD_new = dbn +  ( (dan * C_old) -  (an * dC_old) )/(C_old*C_old)
-
-        df_new = df_old * Delta + np.multiply( np.multiply(f_old , dC_new ), D_new) +  \
-                 np.multiply(np.multiply(f_old , C_new) , dD_new)
-
+        if ((j > N_min) and (np.abs(Delta - 1.) < tol)):  # converged
+            conv = True
 
         # Set up for next iter
         j = j + 1
@@ -634,7 +632,7 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
             - gamma[n_inv] * conv1
             + gamma[n_inv] * conv2, dContFrac, np.abs(Delta - 1.), j - 1 )
 
-    # return (dalpha)
+    #return (dbeta[2,n_inv], gamma[n_inv], dgamma[2,n_inv])
 
 
 

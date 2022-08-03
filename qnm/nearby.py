@@ -224,6 +224,8 @@ class NearbyRootFinder(object):
             self.n_frac = tempObject_A[3]
 
             #######################    SUPER NEW WAY
+            '''
+
 
             self.last_inv_err, dContFrac, self.cf_err, self.n_frac = \
                 radial.leaver_cf_inv_lentz_grad(omega, self.a, self.s, self.m, A,
@@ -232,6 +234,7 @@ class NearbyRootFinder(object):
 
             dCda, dCdomega, dCdA = dContFrac
             self.last_grad_inv_err = dCdomega + dCdA * dAdc * self.a
+            '''
 
             #######################
 
