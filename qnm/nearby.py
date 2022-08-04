@@ -206,6 +206,7 @@ class NearbyRootFinder(object):
 
             #######################  NEW WAY
 
+            '''
             tempObject_A = \
                 radial.lentz_with_grad(radial.indexed_a_nn_inv_prt_1, radial.indexed_b_nn_inv_prt_1,
                                        radial.da_nn_inv_prt_1_vector, radial.db_nn_inv_prt_1_vector,
@@ -223,8 +224,10 @@ class NearbyRootFinder(object):
             self.cf_err = tempObject_A[2]
             self.n_frac = tempObject_A[3]
 
-            #######################    SUPER NEW WAY
+
             '''
+            #######################    SUPER NEW WAY
+
 
 
             self.last_inv_err, dContFrac, self.cf_err, self.n_frac = \
@@ -234,19 +237,9 @@ class NearbyRootFinder(object):
 
             dCda, dCdomega, dCdA = dContFrac
             self.last_grad_inv_err = dCdomega + dCdA * dAdc * self.a
-            '''
+
 
             #######################
-
-
-
-
-
-
-
-
-
-
 
             # Insert optional poles
             pole_factors = np.prod(omega - self.poles)

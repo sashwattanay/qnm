@@ -401,105 +401,49 @@ def leaver_cf_inv_lentz(omega, a, s, m, A, n_inv,
 
 
 @njit(cache=True)
+def dD_array_func(omega, a, s, m, A):
+
+        dD_array =    np.full((3,5) , complex(0, 0.))    #[[0]*5]*3
+
+        M = 1.
+        i = complex(0, 1.)
+        a2 = a * a
+        M2 = M * M
+        v1 = M2 - a2
+        v1_sqrt = np.power(v1, 1. / 2.)
+        v2 = (a - M) * (a + M)
+        v22 = v1_sqrt + M
+        v1_radical = np.power(v1, 3. / 2.)
+
+        dD_array[0,0] = i * M2 * (m - 2. * a * omega) / (v1_radical)
+        dD_array[0,1] = - 2 * i * (m * M2 - 2. * a2 * a * omega) / v1_radical
+        dD_array[0,2] = dD_array[0,0]
+        dD_array[0,3] = (-i * m * M2 + 2. * (i * a2 * a - 2. * m * M2 * M + m * v2 * v1_sqrt) * omega + \
+                       2. * a * (4. * a2 * M + v2 * v1_sqrt) * omega * omega) / v1_radical
+        dD_array[0,4] = M2 * (m - 2. * a * omega) * (i + 4. * M * omega) / v1_radical
+        dD_array[1,0] = -2. * i * M * v22 / v1_sqrt
+        dD_array[1,1] = 4. * i * v22 * v22 / v1_sqrt
+        dD_array[1,2] = - (2. * i * M * (M + 3. * (-M + v22))) / v1_sqrt
+        dD_array[1,3] = - 2. * (a * m * (M + v22) - 2. * M * v22 * (i + 8. * M * omega) + \
+                              a2 * (i + 7. * M * omega + v22 * omega)) / v1_sqrt
+        dD_array[1,4] = -2. * M * (
+                    -2. * a * m + i * (3. + 2. * s) * v1_sqrt + 8. * M2 * omega + M * (i + 8. * v1_sqrt * omega)) / v1_sqrt
+        dD_array[2,0] = 0.
+        dD_array[2,1] = 0.
+        dD_array[2,2] = 0.
+        dD_array[2,3] = -1.
+        dD_array[2,4] = 0.
+
+        return dD_array
+
+
+
+@njit(cache=True)
 def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
                         tol=1.e-10, N_min=0, N_max=np.Inf):
-    """Compute the n_inv inversion of the infinite continued
-    fraction for solving the radial Teukolsky equation, using
-    modified Lentz's method.
-    The value returned is Eq. (44) of [1]_.
-
-    Same as :meth:`leaver_cf_inv_lentz_old`, but with Lentz's method
-    inlined so that numba can speed things up.
-
-    Parameters
-    ----------
-    omega: complex
-      The complex frequency for evaluating the infinite continued
-      fraction.
-
-    a: float
-      Spin parameter of the black hole, 0. <= a < 1 .
-
-    s: int
-      Spin weight of the field (i.e. -2 for gravitational).
-
-    m: int
-      Azimuthal number for the perturbation.
-
-    A: complex
-      Separation constant between angular and radial ODEs.
-
-    n_inv: int
-      Inversion number for the infinite continued fraction. Finding
-      the nth overtone is typically most stable when n_inv = n .
-
-    tol: float, optional [default: 1.e-10]
-      Tolerance for termination of Lentz's method.
-
-    N_min: int, optional [default: 0]
-      Minimum number of iterations through Lentz's method.
-
-    N_max: int or comparable, optional [default: np.Inf]
-      Maximum number of iterations for Lentz's method.
-
-    Returns
-    -------
-    (complex, float, int)
-      The first value (complex) is the nth inversion of the infinite
-      continued fraction evaluated with these arguments. The second
-      value (float) is the estimated error from Lentz's method. The
-      third value (int) is the number of iterations of Lentz's method.
-
-    Examples
-    --------
-
-    >>> from qnm.radial import leaver_cf_inv_lentz
-    >>> print(leaver_cf_inv_lentz(omega=.4 - 0.2j, a=0.02, s=-2, m=2, A=4.+0.j, n_inv=0))
-    ((-3.5662773770495972-1.538871079338485j), 9.702532283649582e-11, 76)
-
-    References
-    ----------
-    .. [1] GB Cook, M Zalutskiy, "Gravitational perturbations of the
-       Kerr geometry: High-accuracy study," Phys. Rev. D 90, 124021
-       (2014), https://arxiv.org/abs/1410.7698 .
-
-    """
 
     D = D_coeffs(omega, a, s, m, A)
-
-    dD_array =    np.full((3,5) , complex(0, 0.))    #[[0]*5]*3
-
-    M = 1.
-    i = complex(0, 1.)
-    a2 = a * a
-    M2 = M * M
-    v1 = M2 - a2
-    v1_sqrt = np.power(v1, 1. / 2.)
-    v2 = (a - M) * (a + M)
-    v22 = v1_sqrt + M
-    v1_radical = np.power(v1, 3. / 2.)
-
-
-
-    dD_array[0,0] = i * M2 * (m - 2. * a * omega) / (v1_radical)
-    dD_array[0,1] = - 2 * i * (m * M2 - 2. * a2 * a * omega) / v1_radical
-    dD_array[0,2] = dD_array[0,0]
-    dD_array[0,3] = (-i * m * M2 + 2. * (i * a2 * a - 2. * m * M2 * M + m * v2 * v1_sqrt) * omega + \
-                   2. * a * (4. * a2 * M + v2 * v1_sqrt) * omega * omega) / v1_radical
-    dD_array[0,4] = M2 * (m - 2. * a * omega) * (i + 4. * M * omega) / v1_radical
-    dD_array[1,0] = -2. * i * M * v22 / v1_sqrt
-    dD_array[1,1] = 4. * i * v22 * v22 / v1_sqrt
-    dD_array[1,2] = - (2. * i * M * (M + 3. * (-M + v22))) / v1_sqrt
-    dD_array[1,3] = - 2. * (a * m * (M + v22) - 2. * M * v22 * (i + 8. * M * omega) + \
-                          a2 * (i + 7. * M * omega + v22 * omega)) / v1_sqrt
-    dD_array[1,4] = -2. * M * (
-                -2. * a * m + i * (3. + 2. * s) * v1_sqrt + 8. * M2 * omega + M * (i + 8. * v1_sqrt * omega)) / v1_sqrt
-    dD_array[2,0] = 0.
-    dD_array[2,1] = 0.
-    dD_array[2,2] = 0.
-    dD_array[2,3] = -1.
-    dD_array[2,4] = 0.
-
+    dD_array =  dD_array_func(omega, a, s, m, A)
 
     # This is only use for the terminating fraction
     n = np.arange(0, n_inv + 1)
@@ -507,26 +451,26 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
     beta = -2. * n * n + (D[1] + 2.) * n + D[3]
     gamma = n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.
 
-
     dalpha =  np.full((3,(n_inv + 1)) , complex(0, 0.))
     dbeta  =  np.full((3,(n_inv + 1)) , complex(0, 0.))
     dgamma =  np.full((3,(n_inv + 1)) , complex(0, 0.))
 
     for i in range(0, n_inv + 1):
-        for j in range(0, 2):
-            dalpha[j,i]  =  (dD_array[j,0] ) * i + dD_array[j,0]
-            dbeta[j,i]   =  (dD_array[j,1] ) * i + dD_array[j,3]
-            dgamma[j,i]  =  (dD_array[j,2] ) * i + dD_array[j,4] - dD_array[j,2]
+        for jj in range(0, 3):
+            dalpha[jj,i]  =  (dD_array[jj,0] ) * i + dD_array[jj,0]
+            dbeta[jj,i]   =  (dD_array[jj,1] ) * i + dD_array[jj,3]
+            dgamma[jj,i]  =  (dD_array[jj,2] ) * i + dD_array[jj,4] - dD_array[jj,2]
 
     conv1 = 0.
     dconv1 = np.full((3) , complex(0, 0.))
     for i in range(0, n_inv):  # n_inv is not included
+        conv1Temp = conv1
         conv1 = alpha[i] / (beta[i] - gamma[i] * conv1)
 
-        for j in range(0, 2):
-            dconv1[j] =   ((beta[i] - conv1 * gamma[i])* dalpha[j,i] -  \
-                            alpha[i] * (dbeta[j,i] - gamma[i] * dconv1[j] -   \
-                            conv1 * dgamma[j,i]))/pow((beta[i] - conv1* gamma[i]),2)
+        for jj in range(0, 3):
+            dconv1[jj] =   ((beta[i] - conv1Temp * gamma[i])* dalpha[jj,i] -  \
+                            alpha[i] * (dbeta[jj,i] - gamma[i] * dconv1[jj] -   \
+                            conv1Temp * dgamma[jj,i]))/pow((beta[i] - conv1Temp* gamma[i]),2)
 
     ##############################
     # Beginning of Lentz's method, inlined
@@ -564,15 +508,17 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
         # We can analytically divide through by n in the numerator and
         # denominator to make the numbers closer to 1.
         an = -(n * n + (D[0] + 1.) * n + D[0]) / (n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.)
-        for jj in range(0, 2):
-            dan[jj]  = -(((1 + n)* ((2 + 3* n + n*n + (-1 + n) *D[2] + D[4])* dD_array[jj, 0] \
+
+        for jj in range(0, 3):
+            dan[jj]  =  -(((1 + n)* ((2 - 3* n + n*n + (-1 + n) *D[2] + D[4])* dD_array[jj, 0] \
                         - (n + D[0])* ((-1 + n) * dD_array[jj, 2] +   \
-                        dD_array[jj, 4])))/pow((2 + 3 * n + n*n + (-1 + n)* D[2] + D[4]), 2))
+                        dD_array[jj, 4])))/pow((2 - 3 * n + n*n + (-1 + n)* D[2] + D[4]), 2))
 
         n = n + 1
 
         bn = (-2. * n * n + (D[1] + 2.) * n + D[3]) / (n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.)
-        for jj in range(0, 2):
+
+        for jj in range(0, 3):
             dbn[jj]  =  ((2 - 3 * n + n*n + (-1 + n) * D[2] + D[4])* (n * dD_array[jj, 1] + \
                         dD_array[jj, 3]) - (-2 *(-1 + n)* n + n *D[1] +  \
                         D[3])* ((-1 + n) * dD_array[jj, 2] + dD_array[jj, 4])) \
@@ -593,13 +539,8 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
         Delta = C_new * D_new
         f_new = f_old * Delta
 
-
-        #dC_new = dbn + (    (dan * C_old) - (an * dC_old)   )/(C_old * C_old)
-
         dC_new = dbn + (    (dan * C_old) - (an * dC_old)   )/(C_old * C_old)
-   #    dD_new =  - D_new * D_new * (dbn + dan * D_old + an * dD_old )
         dD_new = - D_new * D_new * (dbn + dan * D_old + an * dD_old )
-
         df_new = df_old * Delta + (f_old * dC_new) * D_new +  \
                 (f_old * C_new) * dD_new
 
@@ -619,12 +560,10 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
     conv2 = f_new
     dconv2 = df_new
 
-    dContFrac = np.array([dbeta[0,n_inv] +  gamma[n_inv] * (-dconv1[0] + dconv2[0]) \
-     + (-conv1 + conv2) * dgamma[0,n_inv],    \
-    dbeta[1,n_inv] +  gamma[n_inv] * (-dconv1[1] + dconv2[1]) \
-     + (-conv1 + conv2) * dgamma[1,n_inv],    \
-    dbeta[2,n_inv] +  gamma[n_inv] * (-dconv1[2] + dconv2[2]) \
-     + (-conv1 + conv2) * dgamma[2,n_inv]    ])
+    dContFrac = np.array(
+    [dbeta[0,n_inv] +  gamma[n_inv] * (-dconv1[0] + dconv2[0]) + (-conv1 + conv2) * dgamma[0,n_inv],\
+     dbeta[1,n_inv] +  gamma[n_inv] * (-dconv1[1] + dconv2[1]) + (-conv1 + conv2) * dgamma[1,n_inv],\
+     dbeta[2,n_inv] +  gamma[n_inv] * (-dconv1[2] + dconv2[2]) + (-conv1 + conv2) * dgamma[2,n_inv]])
 
     ##############################
 
@@ -632,7 +571,7 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
             - gamma[n_inv] * conv1
             + gamma[n_inv] * conv2, dContFrac, np.abs(Delta - 1.), j - 1 )
 
-    #return (dbeta[2,n_inv], gamma[n_inv], dgamma[2,n_inv])
+    # return (   conv2, dconv2[0] )
 
 
 
