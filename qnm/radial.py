@@ -405,6 +405,7 @@ def dD_array_func(omega, a, s, m, A):
 
         dD_array =    np.full((3,5) , complex(0, 0.))    #[[0]*5]*3
 
+
         M = 1.
         i = complex(0, 1.)
         a2 = a * a
@@ -451,15 +452,17 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
     beta = -2. * n * n + (D[1] + 2.) * n + D[3]
     gamma = n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.
 
-    dalpha =  np.full((3,(n_inv + 1)) , complex(0, 0.))
-    dbeta  =  np.full((3,(n_inv + 1)) , complex(0, 0.))
-    dgamma =  np.full((3,(n_inv + 1)) , complex(0, 0.))
+    dalpha =  np.zeros(  (3, n_inv + 1)  , dtype = np.complex128) #np.full((3,(n_inv + 1)) , complex(0., 0.))
+    dbeta  =  np.zeros(  (3, n_inv + 1)  , dtype = np.complex128) #np.zeros(  (3, n_inv + 1)  , dtype = np.complex128)
+    dgamma =  np.zeros(  (3, n_inv + 1)  , dtype = np.complex128) #np.zeros(  (3, n_inv + 1)  , dtype = np.complex128)
 
-    for i in range(0, n_inv + 1):
-        for jj in range(0, 3):
-            dalpha[jj,i]  =  (dD_array[jj,0] ) * i + dD_array[jj,0]
-            dbeta[jj,i]   =  (dD_array[jj,1] ) * i + dD_array[jj,3]
-            dgamma[jj,i]  =  (dD_array[jj,2] ) * i + dD_array[jj,4] - dD_array[jj,2]
+    ones_arr = np.full(n_inv + 1, 1)
+    dalpha = np.outer(dD_array[:, 0], n + 1 )
+    #dalpha = np.outer(dD_array[:, 0], n )  +  np.outer(dD_array[:, 0], ones_arr)
+    dbeta  = np.outer(dD_array[:, 1], n  ) +   np.outer(dD_array[:, 3], ones_arr)
+    dgamma = np.outer(dD_array[:, 2], n  ) +   np.outer(dD_array[:, 4] - dD_array[:, 2], ones_arr)
+
+
 
     conv1 = 0.
     dconv1 = np.full((3) , complex(0, 0.))
@@ -467,10 +470,9 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
         conv1Temp = conv1
         conv1 = alpha[i] / (beta[i] - gamma[i] * conv1)
 
-        for jj in range(0, 3):
-            dconv1[jj] =   ((beta[i] - conv1Temp * gamma[i])* dalpha[jj,i] -  \
-                            alpha[i] * (dbeta[jj,i] - gamma[i] * dconv1[jj] -   \
-                            conv1Temp * dgamma[jj,i]))/pow((beta[i] - conv1Temp* gamma[i]),2)
+        dconv1    =   ((beta[i] - conv1Temp * gamma[i])* dalpha[:,i] -  \
+                        alpha[i] * (dbeta[:,i] - gamma[i] * dconv1 -   \
+                        conv1Temp * dgamma[:,i]))/pow((beta[i] - conv1Temp* gamma[i]),2)
 
     ##############################
     # Beginning of Lentz's method, inlined
@@ -509,20 +511,18 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
         # denominator to make the numbers closer to 1.
         an = -(n * n + (D[0] + 1.) * n + D[0]) / (n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.)
 
-        for jj in range(0, 3):
-            dan[jj]  =  -(((1 + n)* ((2 - 3* n + n*n + (-1 + n) *D[2] + D[4])* dD_array[jj, 0] \
-                        - (n + D[0])* ((-1 + n) * dD_array[jj, 2] +   \
-                        dD_array[jj, 4])))/pow((2 - 3 * n + n*n + (-1 + n)* D[2] + D[4]), 2))
+        dan  =  -(((1 + n)* ((2 - 3* n + n*n + (-1 + n) *D[2] + D[4])* dD_array[:, 0] \
+                    - (n + D[0])* ((-1 + n) * dD_array[:, 2] +   \
+                    dD_array[:, 4])))/pow((2 - 3 * n + n*n + (-1 + n)* D[2] + D[4]), 2))
 
         n = n + 1
 
         bn = (-2. * n * n + (D[1] + 2.) * n + D[3]) / (n * n + (D[2] - 3.) * n + D[4] - D[2] + 2.)
 
-        for jj in range(0, 3):
-            dbn[jj]  =  ((2 - 3 * n + n*n + (-1 + n) * D[2] + D[4])* (n * dD_array[jj, 1] + \
-                        dD_array[jj, 3]) - (-2 *(-1 + n)* n + n *D[1] +  \
-                        D[3])* ((-1 + n) * dD_array[jj, 2] + dD_array[jj, 4])) \
-                        /pow((2 - 3* n + n*n + (-1 + n)* D[2] + D[4]),2)
+        dbn  =  ((2 - 3 * n + n*n + (-1 + n) * D[2] + D[4])* (n * dD_array[:, 1] + \
+                    dD_array[:, 3]) - (-2 *(-1 + n)* n + n *D[1] +  \
+                    D[3])* ((-1 + n) * dD_array[:, 2] + dD_array[:, 4])) \
+                    /pow((2 - 3* n + n*n + (-1 + n)* D[2] + D[4]),2)
 
 
         D_new = bn + an * D_old
@@ -559,19 +559,13 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
 
     conv2 = f_new
     dconv2 = df_new
-
-    dContFrac = np.array(
-    [dbeta[0,n_inv] +  gamma[n_inv] * (-dconv1[0] + dconv2[0]) + (-conv1 + conv2) * dgamma[0,n_inv],\
-     dbeta[1,n_inv] +  gamma[n_inv] * (-dconv1[1] + dconv2[1]) + (-conv1 + conv2) * dgamma[1,n_inv],\
-     dbeta[2,n_inv] +  gamma[n_inv] * (-dconv1[2] + dconv2[2]) + (-conv1 + conv2) * dgamma[2,n_inv]])
+    dContFrac = dbeta[: ,n_inv] +  gamma[n_inv] * (-dconv1 + dconv2) + (-conv1 + conv2) * dgamma[:,n_inv]
 
     ##############################
 
     return (beta[n_inv]
             - gamma[n_inv] * conv1
             + gamma[n_inv] * conv2, dContFrac, np.abs(Delta - 1.), j - 1 )
-
-    # return (   conv2, dconv2[0] )
 
 
 
