@@ -245,17 +245,54 @@ class KerrSpinSeq(object):
 
         _a = self.a[-1]
 
-        domegada = (-self.partial_der_dCda[-1] - self.total_der_dAdc[-1] * self.partial_der_dCdA[-1] 
-                    * self.omega[-1]) / (_a * self.total_der_dAdc[-1] * self.partial_der_dCdA[-1] 
-                                         + self.partial_der_dCdomega[-1])
 
-        omega_guess = self.omega[-1] + domegada * self.delta_a
+        if (len(self.a) < 2):
+            omega_guess = self.omega[-1]
+            A0          = self.A[-1]
 
-        A0 = self.A[-1] + self.total_der_dAdc[-1] * (
-                    _a * (omega_guess - self.omega[-1]) + self.omega[-1] * self.delta_a)
-        _a = _a + self.delta_a
+            _a = _a + self.delta_a
+        else:
 
-        """if (len(self.a) < 3):
+            domegada = (-self.partial_der_dCda[-1] - self.total_der_dAdc[-1] * self.partial_der_dCdA[-1]
+            * self.omega[-1]) / (_a * self.total_der_dAdc[-1] * self.partial_der_dCdA[-1]
+            + self.partial_der_dCdomega[-1])
+
+            dAda =  self.total_der_dAdc[-1] * (_a * domegada + self.omega[-1] )
+
+
+            rt = 0.01      ## relative tolerance
+
+            A_err = self.A[-1] -   ( self.A[-2] +  dAda * self.delta_a)
+            A_doubl_deriv = A_err/(self.delta_a * self.delta_a)
+            A_delta_a_scaled =  np.abs(self.A[-2]/A_doubl_deriv)
+
+
+            omg_err = self.omega[-1] -   ( self.omega[-2] +  domegada * self.delta_a)
+            omg_doubl_deriv = omg_err/(self.delta_a * self.delta_a)
+            omega_delta_a_scaled =   np.abs(self.omega[-2]/omg_doubl_deriv)
+
+
+            _delta_a = np.sqrt(   rt * np.min([A_delta_a_scaled, omega_delta_a_scaled]) )
+
+            self.delta_a_prop.append(_delta_a)
+            # Make sure it's between our min and max allowed step size
+            _delta_a = np.max([self.delta_a_min, _delta_a])
+            _delta_a = np.min([self.delta_a_max, _delta_a])
+
+            _a = _a + _delta_a
+
+            # Make sure we get the end point
+            if (_a > self.a_max):
+                _a = self.a_max
+
+
+            A0 = self.A[-1] +  dAda* self.delta_a
+            omega_guess = self.omega[-1] + domegada * self.delta_a
+
+
+
+        '''
+        if (len(self.a) < 3):
             omega_guess = self.omega[-1]
             A0          = self.A[-1]
 
@@ -316,7 +353,10 @@ class KerrSpinSeq(object):
 
             omega_guess = interp_o_r(_a) + 1.j*interp_o_i(_a)
             A0          = interp_A_r(_a) + 1.j*interp_A_i(_a)
-        """
+            '''
+
+
+
 
         return _a, omega_guess, A0
 

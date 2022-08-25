@@ -411,10 +411,10 @@ def dD_array_func(omega, a, s, m, A):
         a2 = a * a
         M2 = M * M
         v1 = M2 - a2
-        v1_sqrt = np.power(v1, 1. / 2.)
+        v1_sqrt = np.sqrt(v1)
         v2 = (a - M) * (a + M)
         v22 = v1_sqrt + M
-        v1_radical = np.power(v1, 3. / 2.)
+        v1_radical = v1_sqrt * v1_sqrt * v1_sqrt
 
         dD_array[0,0] = i * M2 * (m - 2. * a * omega) / (v1_radical)
         dD_array[0,1] = - 2 * i * (m * M2 - 2. * a2 * a * omega) / v1_radical
@@ -472,7 +472,8 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
 
         dconv1    =   ((beta[i] - conv1Temp * gamma[i])* dalpha[:,i] -  \
                         alpha[i] * (dbeta[:,i] - gamma[i] * dconv1 -   \
-                        conv1Temp * dgamma[:,i]))/pow((beta[i] - conv1Temp* gamma[i]),2)
+                        conv1Temp * dgamma[:,i]))/(  (beta[i] - conv1Temp* gamma[i]) \
+                        * (beta[i] - conv1Temp* gamma[i]))
 
     ##############################
     # Beginning of Lentz's method, inlined
@@ -513,7 +514,8 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
 
         dan  =  -(((1 + n)* ((2 - 3* n + n*n + (-1 + n) *D[2] + D[4])* dD_array[:, 0] \
                     - (n + D[0])* ((-1 + n) * dD_array[:, 2] +   \
-                    dD_array[:, 4])))/pow((2 - 3 * n + n*n + (-1 + n)* D[2] + D[4]), 2))
+                    dD_array[:, 4])))/   ( (2 - 3 * n + n*n + (-1 + n)* D[2] + D[4]) *  \
+                    (2 - 3 * n + n*n + (-1 + n)* D[2] + D[4]))              )
 
         n = n + 1
 
@@ -522,7 +524,8 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
         dbn  =  ((2 - 3 * n + n*n + (-1 + n) * D[2] + D[4])* (n * dD_array[:, 1] + \
                     dD_array[:, 3]) - (-2 *(-1 + n)* n + n *D[1] +  \
                     D[3])* ((-1 + n) * dD_array[:, 2] + dD_array[:, 4])) \
-                    /pow((2 - 3* n + n*n + (-1 + n)* D[2] + D[4]),2)
+                    /(  (2 - 3* n + n*n + (-1 + n)* D[2] + D[4]) *  \
+                    (2 - 3* n + n*n + (-1 + n)* D[2] + D[4]))
 
 
         D_new = bn + an * D_old
@@ -566,6 +569,38 @@ def leaver_cf_inv_lentz_grad(omega, a, s, m, A, n_inv,
     return (beta[n_inv]
             - gamma[n_inv] * conv1
             + gamma[n_inv] * conv2, dContFrac, np.abs(Delta - 1.), j - 1 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##############  (ALMOST) USELESS CODE BELOW
+##############  (ALMOST) USELESS CODE BELOW
+##############  (ALMOST) USELESS CODE BELOW
+##############  (ALMOST) USELESS CODE BELOW
+##############  (ALMOST) USELESS CODE BELOW
+##############  (ALMOST) USELESS CODE BELOW
+##############  (ALMOST) USELESS CODE BELOW
+
+
+
+
 
 
 
