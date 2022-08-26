@@ -151,7 +151,7 @@ class KerrSpinSeq(object):
 
         logging.info("l={}, m={}, n={} starting".format(
             self.l, self.m, self.n))
-        
+
         i  = 0  # TODO Allow to start at other values
         _a = 0. # TODO Allow to start at other values
 
@@ -269,21 +269,21 @@ class KerrSpinSeq(object):
                 d2_A_i = interp_A_i.derivative(2)
 
                 # Estimate the a-curvature of the omega and A functions:
-                d2_o = np.abs(d2_o_r(_a) + 1.j*d2_o_i(_a))
-                d2_A = np.abs(d2_A_r(_a) + 1.j*d2_A_i(_a))
+                d2_o = np.abs(   (d2_o_r(_a) + 1.j*d2_o_i(_a))/ (interp_o_r(_a) + 1.j*interp_o_i(_a) )     )
+                d2_A = np.abs(   (d2_A_r(_a) + 1.j*d2_A_i(_a))/ (interp_A_r(_a) + 1.j*interp_A_i(_a) )     )
 
                 # Get the larger of the two a-curvatures
                 d2 = np.max([d2_o, d2_A])
 
                 # This combination has units of a. The numerator
                 # is an empirical fudge factor
-                _delta_a = 0.05/np.sqrt(d2)
+                _delta_a = 0.1/np.sqrt(d2)
 
             self.delta_a_prop.append(_delta_a)
 
             # Make sure it's between our min and max allowed step size
-            _delta_a = np.max([self.delta_a_min, _delta_a])
-            _delta_a = np.min([self.delta_a_max, _delta_a])
+            #_delta_a = np.max([self.delta_a_min, _delta_a])
+            #_delta_a = np.min([self.delta_a_max, _delta_a])
 
             _a = _a + _delta_a
 
