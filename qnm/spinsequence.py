@@ -245,7 +245,6 @@ class KerrSpinSeq(object):
 
         _a = self.a[-1]
 
-
         if (len(self.a) < 2):
             omega_guess = self.omega[-1]
             A0          = self.A[-1]
@@ -274,87 +273,9 @@ class KerrSpinSeq(object):
 
             _delta_a = np.sqrt(   rt * np.min([A_delta_a_scaled, omega_delta_a_scaled]) )
 
-            self.delta_a_prop.append(_delta_a)
-            # Make sure it's between our min and max allowed step size
-            _delta_a = np.max([self.delta_a_min, _delta_a])
-            _delta_a = np.min([self.delta_a_max, _delta_a])
-
             _a = _a + _delta_a
-
-            # Make sure we get the end point
-            if (_a > self.a_max):
-                _a = self.a_max
-
-
             A0 = self.A[-1] +  dAda* self.delta_a
             omega_guess = self.omega[-1] + domegada * self.delta_a
-
-
-
-        '''
-        if (len(self.a) < 3):
-            omega_guess = self.omega[-1]
-            A0          = self.A[-1]
-
-            _a = _a + self.delta_a
-        else:
-
-            # Build interpolants and allow extrapolation
-            # Sadly, UnivariateSpline does not work on complex data
-            interp_o_r = interpolate.UnivariateSpline(
-                self.a[-3:], np.real(self.omega[-3:]),
-                s=0, # No smoothing!
-                k=2, ext=0)
-
-            interp_o_i = interpolate.UnivariateSpline(
-                self.a[-3:], np.imag(self.omega[-3:]),
-                s=0, # No smoothing!
-                k=2, ext=0)
-
-            interp_A_r = interpolate.UnivariateSpline(
-                self.a[-3:], np.real(self.A[-3:]),
-                s=0, # No smoothing!
-                k=2, ext=0)
-
-            interp_A_i = interpolate.UnivariateSpline(
-                self.a[-3:], np.imag(self.A[-3:]),
-                s=0, # No smoothing!
-                k=2, ext=0)
-
-            if (True or (len(self.a) > np.Inf)): # Only do the curvature estimate after a while
-                # Their second derivatives
-                d2_o_r = interp_o_r.derivative(2)
-                d2_o_i = interp_o_i.derivative(2)
-                d2_A_r = interp_A_r.derivative(2)
-                d2_A_i = interp_A_i.derivative(2)
-
-                # Estimate the a-curvature of the omega and A functions:
-                d2_o = np.abs(d2_o_r(_a) + 1.j*d2_o_i(_a))
-                d2_A = np.abs(d2_A_r(_a) + 1.j*d2_A_i(_a))
-
-                # Get the larger of the two a-curvatures
-                d2 = np.max([d2_o, d2_A])
-
-                # This combination has units of a. The numerator
-                # is an empirical fudge factor
-                _delta_a = 0.05/np.sqrt(d2)
-
-            self.delta_a_prop.append(_delta_a)
-
-            # Make sure it's between our min and max allowed step size
-            _delta_a = np.max([self.delta_a_min, _delta_a])
-            _delta_a = np.min([self.delta_a_max, _delta_a])
-
-            _a = _a + _delta_a
-
-            # Make sure we get the end point
-            if (_a > self.a_max):
-                _a = self.a_max
-
-            omega_guess = interp_o_r(_a) + 1.j*interp_o_i(_a)
-            A0          = interp_A_r(_a) + 1.j*interp_A_i(_a)
-            '''
-
 
 
 
