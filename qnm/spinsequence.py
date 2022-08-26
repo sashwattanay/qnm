@@ -272,7 +272,7 @@ class KerrSpinSeq(object):
 
 
             _delta_a = np.sqrt(   rt * np.min([A_delta_a_scaled, omega_delta_a_scaled]) )
-
+            self.delta_a_prop.append(_delta_a)
             _a = _a + _delta_a
 
             # Make sure we get the end point
