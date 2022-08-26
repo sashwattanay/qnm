@@ -274,6 +274,11 @@ class KerrSpinSeq(object):
             _delta_a = np.sqrt(   rt * np.min([A_delta_a_scaled, omega_delta_a_scaled]) )
 
             _a = _a + _delta_a
+
+            # Make sure we get the end point
+            if (_a > self.a_max):
+                _a = self.a_max
+
             A0 = self.A[-1] +  dAda* self.delta_a
             omega_guess = self.omega[-1] + domegada * self.delta_a
 
